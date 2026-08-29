@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0F172A" />
+  <meta name="description" content="Ordena Letras — El reto de las palabras. Juego de palabras en español." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Ordena Letras — El reto de las palabras</title>
+
+  <!-- Favicon: solo el icono oficial del sistema, NUNCA dentro de la interfaz gráfica -->
+  <link rel="icon" type="image/jpeg" href="OrdenaLetras_icono_oficial.jpg" />
+  <link rel="apple-touch-icon" href="OrdenaLetras_icono_oficial.jpg" />
+  <link rel="manifest" href="manifest.json" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 1 — SPLASH
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-splash" class="screen active">
+    <div class="splash-content">
+      <div class="game-logo-banner">
+        <!-- Rayos de fondo de cómic -->
+        <div class="logo-burst-rays"></div>
+        
+        <!-- Cubos 3D flotantes en las esquinas -->
+        <div class="logo-cube cube-o"><span>O</span></div>
+        <div class="logo-cube cube-m"><span>M</span></div>
+        <div class="logo-cube cube-a"><span>A</span></div>
+        <div class="logo-cube cube-s"><span>S</span></div>
+        
+        <!-- Texto 3D del logotipo -->
+        <div class="logo-text-wrapper">
+          <div class="logo-title-ordena">ORDENA</div>
+          <div class="logo-title-letras">LETRAS</div>
+          <div class="logo-ribbon">
+            <span class="ribbon-star">★</span>
+            <span class="ribbon-text">EL RETO DE LAS PALABRAS</span>
+            <span class="ribbon-star">★</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="splash-progress-wrap">
+        <div class="progress-bar">
+          <div class="progress-bar-fill" id="splash-progress" style="width:0%"></div>
+        </div>
+        <span class="splash-loading-text">CARGANDO...</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 2 — MENÚ PRINCIPAL (100% Guía Visual V1)
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-menu" class="screen">
+    <!-- Decoración de fondo: letras translúcidas flotantes tipo arcade -->
+    <div class="menu-bg-cubes" aria-hidden="true">
+      <span class="bg-cube b1">O</span>
+      <span class="bg-cube b2">R</span>
+      <span class="bg-cube b3">D</span>
+      <span class="bg-cube b4">E</span>
+      <span class="bg-cube b5">N</span>
+      <span class="bg-cube b6">A</span>
+      <span class="bg-cube b7">L</span>
+      <span class="bg-cube b8">T</span>
+      <span class="bg-cube b9">S</span>
+    </div>
+
+    <!-- Logotipo principal estilo cómic 3D -->
+    <div class="menu-logo-area">
+      <div class="game-logo-banner">
+        <!-- Rayos de fondo de cómic -->
+        <div class="logo-burst-rays"></div>
+        
+        <!-- Cubos 3D flotantes con letras O, M, A, S -->
+        <div class="logo-cube cube-o"><span>O</span></div>
+        <div class="logo-cube cube-m"><span>M</span></div>
+        <div class="logo-cube cube-a"><span>A</span></div>
+        <div class="logo-cube cube-s"><span>S</span></div>
+        
+        <!-- Tipografía 3D de alta fidelidad -->
+        <div class="logo-text-wrapper">
+          <div class="logo-title-ordena">ORDENA</div>
+          <div class="logo-title-letras">LETRAS</div>
+          <div class="logo-ribbon">
+            <span class="ribbon-star">★</span>
+            <span class="ribbon-text">EL RETO DE LAS PALABRAS</span>
+            <span class="ribbon-star">★</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botones principales del menú: JUGAR, RÉCORDS, AJUSTES, AYUDA -->
+    <div class="menu-buttons-area">
+      <button class="btn btn-primary" id="btn-play" onclick="UI.showDifficulty()">
+        JUGAR
+      </button>
+      <button class="btn btn-blue" id="btn-records" onclick="UI.showScreen('screen-records')">
+        RÉCORDS
+      </button>
+      <button class="btn btn-blue" id="btn-settings" onclick="UI.showScreen('screen-settings')">
+        AJUSTES
+      </button>
+      <button class="btn btn-blue" id="btn-help" onclick="UI.showHelp()">
+        AYUDA
+      </button>
+    </div>
+
+    <!-- Barra de iconos circulares inferior: 🏆 Récords, ⭐ Puntos, ⚙️ Ajustes, ❓ Ayuda -->
+    <div class="menu-bottom-icons">
+      <button class="menu-icon-circle" id="icon-records" onclick="UI.showScreen('screen-records')" aria-label="Récords">
+        🏆
+      </button>
+      <button class="menu-icon-circle" id="icon-stats" onclick="UI.showScreen('screen-stats')" aria-label="Puntos y Estadísticas">
+        ⭐
+      </button>
+      <button class="menu-icon-circle" id="icon-settings" onclick="UI.showScreen('screen-settings')" aria-label="Ajustes">
+        ⚙️
+      </button>
+      <button class="menu-icon-circle" id="icon-help" onclick="UI.showHelp()" aria-label="Ayuda">
+        ❓
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 3 — NOMBRE DEL JUGADOR (Guía Visual V1)
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-player-name" class="screen">
+    <!-- Decoración de fondo de letras flotantes -->
+    <div class="menu-bg-cubes" aria-hidden="true">
+      <span class="bg-cube b1">O</span>
+      <span class="bg-cube b2">R</span>
+      <span class="bg-cube b3">D</span>
+      <span class="bg-cube b4">E</span>
+      <span class="bg-cube b5">N</span>
+      <span class="bg-cube b6">A</span>
+    </div>
+
+    <div class="player-name-wrapper">
+      <h2 class="player-name-title">¿CÓMO TE LLAMAS?</h2>
+      <p class="player-name-sub">Ingresa tu apodo</p>
+      
+      <div class="input-wrap">
+        <input
+          type="text"
+          id="player-name-input"
+          maxlength="15"
+          placeholder="Escribe tu nombre..."
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+        />
+        <span class="input-icon">✏️</span>
+      </div>
+
+      <button class="btn btn-primary" id="btn-name-continue" onclick="UI.confirmPlayerName()">
+        CONTINUAR
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 4 — JUEGO
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-game" class="screen">
+
+    <!-- HUD -->
+    <div class="game-hud">
+      <div class="hud-left">
+        <span class="hud-label">NIVEL</span>
+        <span class="hud-level-display" id="hud-level">1</span>
+        <span class="hud-progress-text" id="hud-progress">0/5</span>
+      </div>
+      <div class="hud-center">
+        <span class="hud-points-label">PUNTOS</span>
+        <span class="hud-points-value" id="hud-points">0</span>
+      </div>
+      <button class="hud-pause-btn" id="btn-pause" onclick="UI.showPause()" aria-label="Pausa">
+        ⏸
+      </button>
+    </div>
+
+    <!-- Vidas -->
+    <div class="game-lives-bar" id="game-lives-bar">
+      <!-- generado por JS -->
+    </div>
+
+    <!-- Área de la palabra -->
+    <div class="game-word-area">
+      <span class="game-word-label">LETRAS DESORDENADAS</span>
+
+      <!-- Fichas desordenadas -->
+      <div class="scrambled-tiles" id="scrambled-tiles">
+        <!-- generado por JS -->
+      </div>
+
+      <!-- Slots de respuesta -->
+      <span class="game-word-label" style="margin-top:4px;">TU RESPUESTA</span>
+      <div class="answer-slots" id="answer-slots">
+        <!-- generado por JS -->
+      </div>
+
+      <!-- Feedback -->
+      <div class="game-feedback">
+        <span class="feedback-text" id="game-feedback-text"></span>
+      </div>
+    </div>
+
+    <!-- Teclado QWERTY -->
+    <div class="game-keyboard" id="game-keyboard">
+      <!-- Fila 1: Q W E R T Y U I O P -->
+      <div class="keyboard-row">
+        <button class="key" data-key="Q">Q</button>
+        <button class="key" data-key="W">W</button>
+        <button class="key" data-key="E">E</button>
+        <button class="key" data-key="R">R</button>
+        <button class="key" data-key="T">T</button>
+        <button class="key" data-key="Y">Y</button>
+        <button class="key" data-key="U">U</button>
+        <button class="key" data-key="I">I</button>
+        <button class="key" data-key="O">O</button>
+        <button class="key" data-key="P">P</button>
+      </div>
+      <!-- Fila 2: A S D F G H J K L -->
+      <div class="keyboard-row">
+        <button class="key" data-key="A">A</button>
+        <button class="key" data-key="S">S</button>
+        <button class="key" data-key="D">D</button>
+        <button class="key" data-key="F">F</button>
+        <button class="key" data-key="G">G</button>
+        <button class="key" data-key="H">H</button>
+        <button class="key" data-key="J">J</button>
+        <button class="key" data-key="K">K</button>
+        <button class="key" data-key="L">L</button>
+      </div>
+      <!-- Fila 3: Z X C V B N M ⌫ -->
+      <div class="keyboard-row">
+        <button class="key" data-key="Z">Z</button>
+        <button class="key" data-key="X">X</button>
+        <button class="key" data-key="C">C</button>
+        <button class="key" data-key="V">V</button>
+        <button class="key" data-key="B">B</button>
+        <button class="key" data-key="N">N</button>
+        <button class="key" data-key="M">M</button>
+        <button class="key key-delete" data-key="BACKSPACE" id="key-backspace">⌫</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 5 — PALABRA CORRECTA
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-word-complete" class="screen">
+    <div class="card word-complete-card">
+      <div class="correct-title" id="wc-title">¡CORRECTO!</div>
+      <div class="stars-display" id="wc-stars">
+        <span class="star-icon">⭐</span>
+        <span class="star-icon">⭐</span>
+        <span class="star-icon">⭐</span>
+      </div>
+      <div class="correct-word-tiles" id="wc-word-tiles">
+        <!-- generado por JS -->
+      </div>
+      <div class="correct-points" id="wc-points">+200 PUNTOS</div>
+      <div class="correct-life-bonus" id="wc-life-bonus" style="display:none;">
+        ❤️ +1 VIDA
+      </div>
+      <button class="btn btn-primary" id="btn-wc-continue" onclick="Game.nextWord()">
+        CONTINUAR
+      </button>
+    </div>
+
+    <!-- Partículas de celebración -->
+    <div class="particle-container" id="particle-container-wc"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 6 — NIVEL COMPLETADO
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-level-complete" class="screen">
+    <div class="card level-complete-card">
+      <div class="level-complete-title">¡NIVEL COMPLETADO!</div>
+      <div class="trophy-icon">🏆</div>
+      <div class="level-number-display" id="lc-level">NIVEL 1</div>
+
+      <div class="level-stats-grid">
+        <div class="level-stat-item">
+          <span class="level-stat-label">Puntos ganados</span>
+          <span class="level-stat-value gold" id="lc-points-earned">0</span>
+        </div>
+        <div class="level-stat-item">
+          <span class="level-stat-label">Puntuación total</span>
+          <span class="level-stat-value gold" id="lc-points-total">0</span>
+        </div>
+        <div class="level-stat-item">
+          <span class="level-stat-label">Palabras</span>
+          <span class="level-stat-value" id="lc-words">5/5</span>
+        </div>
+        <div class="level-stat-item">
+          <span class="level-stat-label">Errores</span>
+          <span class="level-stat-value" id="lc-errors">0</span>
+        </div>
+      </div>
+
+      <div>
+        <span class="game-word-label">VIDAS RESTANTES</span>
+        <div class="level-hearts-display" id="lc-hearts">
+          <!-- generado por JS -->
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-next-level" onclick="Game.startNextLevel()">
+        SIGUIENTE NIVEL ➡️
+      </button>
+    </div>
+    <div class="particle-container" id="particle-container-lc"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 7 — PAUSA
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-pause" class="screen">
+    <div class="card pause-card">
+      <div class="pause-icon">⏸️</div>
+      <div class="pause-title">PAUSA</div>
+
+      <div class="flex-col gap-md w-full" style="margin-top:8px;">
+        <button class="btn btn-green" id="btn-resume" onclick="Game.resume()">
+          ▶️ CONTINUAR
+        </button>
+        <button class="btn btn-blue" id="btn-pause-settings" onclick="UI.showScreen('screen-settings')">
+          ⚙️ AJUSTES
+        </button>
+        <button class="btn btn-dark" id="btn-restart-level" onclick="Game.restartLevel()">
+          🔄 REINICIAR NIVEL
+        </button>
+        <button class="btn btn-red" id="btn-pause-exit" onclick="Game.exitToMenu()">
+          🏠 SALIR
+        </button>
+      </div>
+
+      <div class="pause-bottom-icons">
+        <div class="pause-icon-btn" id="pause-toggle-sound" onclick="Audio.toggleSounds()">
+          <span class="icon" id="pause-sound-icon">🔊</span>
+          <span class="lbl">Sonido</span>
+        </div>
+        <div class="pause-icon-btn" id="pause-toggle-music" onclick="Audio.toggleMusic()">
+          <span class="icon" id="pause-music-icon">🎵</span>
+          <span class="lbl">Música</span>
+        </div>
+        <div class="pause-icon-btn" id="pause-home" onclick="Game.exitToMenu()">
+          <span class="icon">🏠</span>
+          <span class="lbl">Inicio</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 8 — RÉCORDS
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-records" class="screen">
+    <div class="screen-header">
+      <button class="back-btn" onclick="UI.goBack()" aria-label="Volver">←</button>
+      <h1 class="screen-title">🏆 RÉCORDS</h1>
+      <div style="width:40px;"></div>
+    </div>
+
+    <div class="records-tabs">
+      <button class="records-tab active" id="tab-top10" onclick="UI.switchRecordsTab('top10')">TOP 10</button>
+      <button class="records-tab" id="tab-personal" onclick="UI.switchRecordsTab('personal')">PERSONAL</button>
+    </div>
+
+    <div class="records-list" id="records-list">
+      <!-- generado por JS -->
+    </div>
+
+    <button class="btn btn-blue" id="btn-my-position" onclick="UI.highlightMyPosition()" style="margin-top:auto;">
+      MI POSICIÓN
+    </button>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 9 — GAME OVER
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-game-over" class="screen">
+    <div class="card game-over-card">
+      <div class="game-over-skull">💀</div>
+      <div class="game-over-title">GAME OVER</div>
+      <div class="game-over-new-record hidden" id="go-new-record">
+        🌟 ¡NUEVO RÉCORD!
+      </div>
+
+      <div class="game-over-stats">
+        <div class="game-over-stat-row">
+          <span class="game-over-stat-label">Puntuación</span>
+          <span class="game-over-stat-value gold" id="go-score">0</span>
+        </div>
+        <div class="game-over-stat-row">
+          <span class="game-over-stat-label">Mejor Puntuación</span>
+          <span class="game-over-stat-value gold" id="go-best">0</span>
+        </div>
+        <div class="game-over-stat-row">
+          <span class="game-over-stat-label">Nivel Alcanzado</span>
+          <span class="game-over-stat-value" id="go-level">1</span>
+        </div>
+        <div class="game-over-stat-row">
+          <span class="game-over-stat-label">Palabras Completadas</span>
+          <span class="game-over-stat-value green" id="go-words">0</span>
+        </div>
+        <div class="game-over-stat-row">
+          <span class="game-over-stat-label">Errores</span>
+          <span class="game-over-stat-value" id="go-errors">0</span>
+        </div>
+        <div class="game-over-stat-row">
+          <span class="game-over-stat-label">Vidas Restantes</span>
+          <span class="game-over-stat-value" id="go-lives">0</span>
+        </div>
+      </div>
+
+      <div class="flex-col gap-md w-full" style="margin-top:8px;">
+        <button class="btn btn-primary" id="btn-play-again" onclick="Game.playAgain()">
+          🎮 JUGAR DE NUEVO
+        </button>
+        <button class="btn btn-blue" id="btn-go-menu" onclick="Game.exitToMenu()">
+          🏠 MENÚ PRINCIPAL
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 10 — AJUSTES
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-settings" class="screen">
+    <div class="screen-header">
+      <button class="back-btn" onclick="UI.goBack()" aria-label="Volver">←</button>
+      <h1 class="screen-title">⚙️ AJUSTES</h1>
+      <div style="width:40px;"></div>
+    </div>
+
+    <!-- Sección: Audio -->
+    <div class="settings-section">
+      <span class="settings-section-title">Audio</span>
+      <div class="toggle-wrap">
+        <span class="toggle-label">🔊 Sonidos</span>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-sounds" onchange="Audio.setSounds(this.checked)" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-wrap">
+        <span class="toggle-label">🎵 Música</span>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-music" onchange="Audio.setMusic(this.checked)" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="toggle-wrap">
+        <span class="toggle-label">📳 Vibración</span>
+        <label class="toggle">
+          <input type="checkbox" id="toggle-vibration" onchange="Storage.setVibration(this.checked)" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Sección: Jugador -->
+    <div class="settings-section">
+      <span class="settings-section-title">Jugador</span>
+      <div class="settings-name-display">
+        <span class="settings-name-label">NOMBRE</span>
+        <span class="settings-name-value" id="settings-name-display">Jugador</span>
+      </div>
+      <button class="btn btn-blue" id="btn-change-name" onclick="UI.showScreen('screen-player-name')">
+        ✏️ CAMBIAR NOMBRE
+      </button>
+    </div>
+
+    <!-- Sección: Datos -->
+    <div class="settings-section">
+      <span class="settings-section-title">Datos</span>
+      <button class="btn btn-red" id="btn-reset-data" onclick="UI.confirmResetData()">
+        🗑️ RESTABLECER DATOS
+      </button>
+    </div>
+
+    <!-- Sección: Acerca de -->
+    <div class="settings-section" style="margin-top:auto; padding-bottom: var(--gap-lg);">
+      <div class="card" style="text-align:center; gap:4px; padding: var(--gap-md);">
+        <p style="font-size:var(--fs-sm); font-weight:700; color:var(--color-white);">Ordena Letras</p>
+        <p style="font-size:var(--fs-xs); color:var(--color-text-dim);">El reto de las palabras</p>
+        <p style="font-size:var(--fs-xs); color:var(--color-text-dim);">Versión 1.0 — Español</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 11 — ESTADÍSTICAS
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-stats" class="screen">
+    <div class="screen-header">
+      <button class="back-btn" onclick="UI.goBack()" aria-label="Volver">←</button>
+      <h1 class="screen-title">📊 ESTADÍSTICAS</h1>
+      <div style="width:40px;"></div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-card-icon">🎮</span>
+        <span class="stat-card-value" id="stat-games">0</span>
+        <span class="stat-card-label">Partidas</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-icon">✅</span>
+        <span class="stat-card-value" id="stat-words">0</span>
+        <span class="stat-card-label">Palabras</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-icon">🏆</span>
+        <span class="stat-card-value" id="stat-best">0</span>
+        <span class="stat-card-label">Mejor puntuación</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card-icon">❌</span>
+        <span class="stat-card-value" id="stat-errors">0</span>
+        <span class="stat-card-label">Errores totales</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px;">
+      <h3 style="font-size:var(--fs-sm); font-weight:800; color:var(--color-text-dim); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:var(--gap-sm);">Historial reciente</h3>
+      <div class="stats-history" id="stats-history">
+        <p style="color:var(--color-text-dim); font-size:var(--fs-sm); text-align:center; padding:var(--gap-md) 0;">
+          Aún no hay partidas registradas
+        </p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- #app -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL DE DIFICULTAD (fuera de #app para z-index)
+     ═══════════════════════════════════════════════════════════ -->
+<div class="difficulty-overlay" id="difficulty-overlay" onclick="UI.closeDifficulty(event)">
+  <div class="difficulty-sheet">
+    <div class="difficulty-sheet-handle"></div>
+    <div class="difficulty-sheet-title">SELECCIONA DIFICULTAD</div>
+
+    <div class="difficulty-option easy" id="diff-easy" onclick="Game.startGame('easy')">
+      <div class="diff-badge">😊</div>
+      <div class="diff-info">
+        <div class="diff-name">FÁCIL</div>
+        <div class="diff-desc">Palabras de 4–5 letras · Perfecta para empezar</div>
+      </div>
+      <span style="color:var(--color-green); font-size:1.2rem;">›</span>
+    </div>
+
+    <div class="difficulty-option medium" id="diff-medium" onclick="Game.startGame('medium')">
+      <div class="diff-badge">🤔</div>
+      <div class="diff-info">
+        <div class="diff-name">MEDIA</div>
+        <div class="diff-desc">Palabras de 6–7 letras · Para jugadores hábiles</div>
+      </div>
+      <span style="color:var(--color-gold); font-size:1.2rem;">›</span>
+    </div>
+
+    <div class="difficulty-option hard" id="diff-hard" onclick="Game.startGame('hard')">
+      <div class="diff-badge">🔥</div>
+      <div class="diff-info">
+        <div class="diff-name">DIFÍCIL</div>
+        <div class="diff-desc">Palabras de 8+ letras · Solo para expertos</div>
+      </div>
+      <span style="color:var(--color-red); font-size:1.2rem;">›</span>
+    </div>
+
+    <button class="btn btn-dark btn-sm" onclick="UI.closeDifficulty()">Cancelar</button>
+  </div>
+</div>
+
+<!-- Contenedor de toasts -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Scripts — orden de dependencias -->
+<script src="js/utils.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/words.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>

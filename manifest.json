@@ -1,0 +1,27 @@
+{
+  "name": "Ordena Letras",
+  "short_name": "OrdenaLetras",
+  "description": "El reto de las palabras — Juego de palabras en español",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "OrdenaLetras_icono_oficial.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "OrdenaLetras_icono_oficial.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "education"],
+  "prefer_related_applications": false
+}
