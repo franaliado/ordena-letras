@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Pruebas Unitarias — Ordena Letras</title>
+  <style>
+    body { font-family: sans-serif; background: #0D1B2A; color: #FFF; padding: 20px; }
+    .test-pass { color: #22C55E; font-weight: bold; }
+    .test-fail { color: #EF4444; font-weight: bold; }
+    .test-suite { background: #1B263B; padding: 15px; border-radius: 8px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Pruebas de Lógica Crítica — Ordena Letras V1.0</h1>
+  <div id="results"></div>
+
+  <!-- Scripts del juego -->
+  <script src="../js/utils.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="../js/words.js"></script>
+  <script src="../js/audio.js"></script>
+
+  <script>
+    const resultsContainer = document.getElementById('results');
+
+    function assert(condition, message) {
+      const p = document.createElement('p');
+      if (condition) {
+        p.className = 'test-pass';
+        p.textContent = `✔ PASÓ: ${message}`;
+      } else {
+        p.className = 'test-fail';
+        p.textContent = `✖ FALLÓ: ${message}`;
+      }
+      resultsContainer.appendChild(p);
+    }
+
+    // Suite 1: Utils
+    assert(Utils.normalizeText('árbol') === 'ARBOL', 'Normalización de tildes convierte "árbol" a "ARBOL"');
+    assert(Utils.normalizeText('niño') === 'NIÑO', 'Normalización preserva la letra Ñ en "NIÑO"');
+    
+    const originalWord = 'PLAYA';
+    const scrambled = Utils.scrambleWord(originalWord);
+    assert(scrambled.length === originalWord.length, 'La palabra desordenada mantiene la misma longitud');
+    assert(scrambled.split('').sort().join('') === originalWord.split('').sort().join(''), 'La palabra desordenada contiene exactamente las mismas letras');
+    
+    // Suite 2: WordsManager
+    const easyWord = WordsManager.getWord('facil');
+    assert(easyWord.length === 5, `Palabra fácil tiene 5 letras (Obtenida: ${easyWord})`);
+
+    // Suite 3: Storage Defaults
+    const defaultStats = Storage.getStats();
+    assert(defaultStats.gamesPlayed >= 0, 'Las estadísticas se inicializan correctamente');
+
+    console.log('Pruebas completadas.');
+  </script>
+</body>
+</html>
