@@ -101,7 +101,7 @@
 
     <!-- Botones principales del menú: JUGAR, RÉCORDS, AJUSTES, AYUDA -->
     <div class="menu-buttons-area">
-      <button class="btn btn-primary" id="btn-play" onclick="UI.showDifficulty()">
+      <button class="btn btn-primary" id="btn-play" onclick="Game.startGame()">
         JUGAR
       </button>
       <button class="btn btn-blue" id="btn-records" onclick="UI.showScreen('screen-records')">
@@ -467,13 +467,6 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <div class="toggle-wrap">
-        <span class="toggle-label">📳 Vibración</span>
-        <label class="toggle">
-          <input type="checkbox" id="toggle-vibration" onchange="Storage.setVibration(this.checked)" checked />
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
     </div>
 
     <!-- Sección: Jugador -->
@@ -549,46 +542,38 @@
     </div>
   </section>
 
+  <!-- ═══════════════════════════════════════════════════════════
+       PANTALLA 12 — AYUDA (CÓMO JUGAR)
+       ═══════════════════════════════════════════════════════════ -->
+  <section id="screen-help" class="screen">
+    <div class="screen-header">
+      <button class="back-btn" onclick="UI.goBack()" aria-label="Volver">←</button>
+      <h1 class="screen-title">❓ AYUDA</h1>
+      <div style="width:44px;"></div>
+    </div>
+
+    <div class="card help-card" style="display:flex; flex-direction:column; gap:12px; overflow-y:auto; max-height:calc(100vh - 160px);">
+      <div class="help-item">
+        <h3 style="color:var(--color-gold); font-size:var(--fs-md); font-weight:800; margin-bottom:4px;">🎯 OBJETIVO</h3>
+        <p style="font-size:var(--fs-sm); color:var(--color-text-dim); line-height:1.4;">Ordena las letras mezcladas para descubrir la palabra correcta antes de quedarte sin vidas.</p>
+      </div>
+      <div class="help-item">
+        <h3 style="color:var(--color-blue); font-size:var(--fs-md); font-weight:800; margin-bottom:4px;">📈 NIVELES PROGRESIVOS</h3>
+        <p style="font-size:var(--fs-sm); color:var(--color-text-dim); line-height:1.4;">Comienzas en el <strong>Nivel 1</strong> (4 letras). Cada nivel que superes añade automáticamente una letra más (Nivel 2: 5 letras, Nivel 3: 6 letras, etc.).</p>
+      </div>
+      <div class="help-item">
+        <h3 style="color:var(--color-green); font-size:var(--fs-md); font-weight:800; margin-bottom:4px;">⭐ PUNTUACIÓN & VIDAS</h3>
+        <p style="font-size:var(--fs-sm); color:var(--color-text-dim); line-height:1.4;">
+          • <strong>+10 pts</strong> por letra acertada.<br>
+          • <strong>+100 pts</strong> por completar palabra.<br>
+          • <strong>+50 pts y +1 VIDA</strong> si completas la palabra sin errores.<br>
+          • <strong>-5 pts y -1 VIDA</strong> por cada letra incorrecta.
+        </p>
+      </div>
+    </div>
+  </section>
+
 </div><!-- #app -->
-
-<!-- ═══════════════════════════════════════════════════════════
-     MODAL DE DIFICULTAD (fuera de #app para z-index)
-     ═══════════════════════════════════════════════════════════ -->
-<div class="difficulty-overlay" id="difficulty-overlay" onclick="UI.closeDifficulty(event)">
-  <div class="difficulty-sheet">
-    <div class="difficulty-sheet-handle"></div>
-    <div class="difficulty-sheet-title">SELECCIONA DIFICULTAD</div>
-
-    <div class="difficulty-option easy" id="diff-easy" onclick="Game.startGame('easy')">
-      <div class="diff-badge">😊</div>
-      <div class="diff-info">
-        <div class="diff-name">FÁCIL</div>
-        <div class="diff-desc">Palabras de 4–5 letras · Perfecta para empezar</div>
-      </div>
-      <span style="color:var(--color-green); font-size:1.2rem;">›</span>
-    </div>
-
-    <div class="difficulty-option medium" id="diff-medium" onclick="Game.startGame('medium')">
-      <div class="diff-badge">🤔</div>
-      <div class="diff-info">
-        <div class="diff-name">MEDIA</div>
-        <div class="diff-desc">Palabras de 6–7 letras · Para jugadores hábiles</div>
-      </div>
-      <span style="color:var(--color-gold); font-size:1.2rem;">›</span>
-    </div>
-
-    <div class="difficulty-option hard" id="diff-hard" onclick="Game.startGame('hard')">
-      <div class="diff-badge">🔥</div>
-      <div class="diff-info">
-        <div class="diff-name">DIFÍCIL</div>
-        <div class="diff-desc">Palabras de 8+ letras · Solo para expertos</div>
-      </div>
-      <span style="color:var(--color-red); font-size:1.2rem;">›</span>
-    </div>
-
-    <button class="btn btn-dark btn-sm" onclick="UI.closeDifficulty()">Cancelar</button>
-  </div>
-</div>
 
 <!-- Contenedor de toasts -->
 <div class="toast-container" id="toast-container"></div>

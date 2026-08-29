@@ -49,10 +49,8 @@
   // Sincronizar toggles de ajustes
   const tSound = document.getElementById('toggle-sounds');
   const tMusic = document.getElementById('toggle-music');
-  const tVib   = document.getElementById('toggle-vibration');
   if (tSound) tSound.checked = settings.soundsEnabled;
   if (tMusic) tMusic.checked = settings.musicEnabled;
-  if (tVib)   tVib.checked   = settings.vibrationEnabled !== false;
 
   // ── 5. Completar barra ────────────────────────────────────────────────────
   await advanceProgress(100, 200);

@@ -826,18 +826,31 @@ body {
 }
 
 .hud-pause-btn {
-  background: none;
-  border: none;
-  color: var(--color-text-dim);
-  font-size: var(--fs-xl);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 100%), #1E293B;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  color: var(--color-white);
+  font-size: 1.15rem;
   cursor: pointer;
-  padding: 8px;
-  border-radius: var(--r-sm);
-  transition: color var(--t-fast), background var(--t-fast);
+  border-radius: var(--r-full);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast);
+  user-select: none;
+  flex-shrink: 0;
+}
+.hud-pause-btn:hover {
+  background: linear-gradient(180deg, rgba(59,130,246,0.3) 0%, rgba(37,99,235,0.2) 100%), #1E293B;
+  border-color: rgba(59,130,246,0.7);
+  box-shadow: 0 0 10px rgba(59,130,246,0.4), 0 3px 8px rgba(0,0,0,0.3);
+  transform: scale(1.05);
 }
 .hud-pause-btn:active {
-  color: var(--color-white);
-  background: rgba(255,255,255,0.1);
+  transform: scale(0.95) translateY(2px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
 
 /* Vidas */
@@ -1353,16 +1366,33 @@ body {
 }
 
 .back-btn {
-  background: none;
-  border: none;
-  color: var(--color-text-dim);
-  font-size: var(--fs-xl);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 100%), #1E293B;
+  border: 1.5px solid rgba(255,255,255,0.22);
+  color: var(--color-white);
+  font-size: 1.35rem;
+  font-weight: 900;
   cursor: pointer;
-  padding: 8px;
-  border-radius: var(--r-sm);
-  transition: color var(--t-fast);
+  border-radius: var(--r-full);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+  user-select: none;
+  flex-shrink: 0;
 }
-.back-btn:hover { color: var(--color-white); }
+.back-btn:hover {
+  background: linear-gradient(180deg, rgba(59,130,246,0.3) 0%, rgba(37,99,235,0.2) 100%), #1E293B;
+  border-color: rgba(59,130,246,0.7);
+  box-shadow: 0 0 12px rgba(59,130,246,0.4), 0 4px 10px rgba(0,0,0,0.35);
+  transform: scale(1.05);
+}
+.back-btn:active {
+  transform: scale(0.95) translateY(2px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
 
 .records-tabs {
   display: flex;

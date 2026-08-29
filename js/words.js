@@ -3,20 +3,19 @@
  *
  * Responsable de:
  *  - Cargar el diccionario JSON local
- *  - Filtrar palabras por dificultad
+ *  - Seleccionar palabras según nivel progresivo:
+ *      Nivel 1 -> 4 letras
+ *      Nivel 2 -> 5 letras
+ *      Nivel 3 -> 6 letras
+ *      Nivel 4 -> 7 letras
+ *      Nivel 5 -> 8 letras
+ *      Nivel 6 -> 9 letras
+ *      Nivel 7 -> 10 letras
  *  - Seleccionar palabras sin repetición dentro de una partida
  *  - Barajar las letras garantizando que nunca coincidan con el original
  */
 
 const Words = (() => {
-
-  // ── Longitudes de palabras por nivel (7 niveles, 5 palabras c/u) ───────────
-  // Basado en la guía visual: niveles 1-7, palabras de 4 a 10 letras
-  const LEVEL_LENGTHS = {
-    easy:   [4, 4, 5, 5, 5, 5, 6],   // 7 niveles fácil
-    medium: [6, 6, 7, 7, 7, 7, 8],   // 7 niveles medio
-    hard:   [8, 8, 8, 9, 9, 9, 10],  // 7 niveles difícil
-  };
 
   // ── Estado ──────────────────────────────────────────────────────────────────
   let _dictionary = {};      // { "4": [...], "5": [...], ... }
@@ -70,24 +69,31 @@ const Words = (() => {
   // ── Selección de palabra ────────────────────────────────────────────────────
 
   /**
-   * Selecciona una palabra para el nivel y dificultad dados.
-   * @param {number} level  — 1-indexed (1 a 7)
-   * @param {string} difficulty — 'easy' | 'medium' | 'hard'
+   * Obtiene la longitud de palabra para un nivel:
+   * Nivel 1 = 4 letras, Nivel 2 = 5 letras, Nivel 3 = 6 letras, etc.
+   * @param {number} level - 1-indexed
+   */
+  function getLengthForLevel(level) {
+    const lvl = Math.max(1, parseInt(level, 10) || 1);
+    return lvl + 3;
+  }
+
+  /**
+   * Selecciona una palabra para el nivel dado de forma progresiva.
+   * @param {number} level — 1-indexed (1 a 7+)
    * @returns {string} Palabra en mayúsculas
    */
-  function getWord(level, difficulty) {
-    const levelIndex = Utils.clamp(level - 1, 0, 6);
-    const lengths    = LEVEL_LENGTHS[difficulty] || LEVEL_LENGTHS.easy;
-    const targetLen  = lengths[levelIndex];
+  function getWord(level) {
+    const targetLen = getLengthForLevel(level);
 
-    // Buscar en el bucket de longitud exacta; si no hay suficientes, buscar adyacentes
+    // Buscar en el bucket de longitud exacta
     let candidates = _getPoolByLength(targetLen);
 
     // Excluir palabras ya usadas
     candidates = candidates.filter(w => !_usedWords.has(w));
 
     if (candidates.length === 0) {
-      // Fallback: buscar en longitudes cercanas
+      // Fallback: buscar en longitudes adyacentes
       for (let delta = 1; delta <= 3; delta++) {
         const longer  = _getPoolByLength(targetLen + delta).filter(w => !_usedWords.has(w));
         const shorter = _getPoolByLength(targetLen - delta).filter(w => !_usedWords.has(w));
@@ -97,7 +103,7 @@ const Words = (() => {
     }
 
     if (candidates.length === 0) {
-      // Último recurso: resetear y volver a intentar
+      // Último recurso: resetear historial y reintentar
       _usedWords = new Set();
       candidates = _getPoolByLength(targetLen);
     }
@@ -125,7 +131,7 @@ const Words = (() => {
   function scramble(word) {
     const letters = word.split('');
     if (letters.length <= 1) return letters;
-    return Utils.shuffle(letters);  // Utils.shuffle ya garantiza diferencia
+    return Utils.shuffle(letters);
   }
 
   /**
@@ -136,11 +142,8 @@ const Words = (() => {
     return set.size < word.length;
   }
 
-  // ── Información de nivel ────────────────────────────────────────────────────
-
-  function getLevelLength(level, difficulty) {
-    const idx = Utils.clamp(level - 1, 0, 6);
-    return (LEVEL_LENGTHS[difficulty] || LEVEL_LENGTHS.easy)[idx];
+  function getLevelLength(level) {
+    return getLengthForLevel(level);
   }
 
   function getTotalLevels() { return 7; }

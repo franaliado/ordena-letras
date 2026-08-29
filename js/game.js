@@ -40,10 +40,8 @@ const Game = (() => {
   // ══════════════════════════════════════════════════════════════════════
   let _state = null;
 
-  function _initialState(difficulty) {
+  function _initialState() {
     return {
-      // Meta
-      difficulty,
       isRunning:  false,
       isPaused:   false,
       isGameOver: false,
@@ -60,7 +58,7 @@ const Game = (() => {
       // Partida global
       totalWords:  0,
       totalErrors: 0,
-      maxStreak:   0,         // para uso futuro
+      maxStreak:   0,
       currentStreak: 0,
 
       // Palabra actual
@@ -78,40 +76,28 @@ const Game = (() => {
   // ══════════════════════════════════════════════════════════════════════
 
   /**
-   * Inicia una nueva partida completa.
-   * @param {string} difficulty — 'easy' | 'medium' | 'hard'
+   * Inicia una nueva partida automáticamente desde el Nivel 1.
    */
-  function startGame(difficulty) {
-    UI.closeDifficulty();
+  function startGame() {
     Audio.playButton();
 
     // Verificar si el jugador tiene nombre
     const name = Storage.getPlayerName();
     if (!name || name === 'Jugador') {
-      // Mostrar pantalla de nombre primero
-      _pendingDifficulty = difficulty;
       UI.showScreen('screen-player-name');
       return;
     }
 
-    _launchGame(difficulty);
+    _launchGame();
   }
-
-  let _pendingDifficulty = null;
 
   function launchAfterName() {
-    if (_pendingDifficulty) {
-      const diff = _pendingDifficulty;
-      _pendingDifficulty = null;
-      _launchGame(diff);
-    } else {
-      UI.showDifficulty();
-    }
+    _launchGame();
   }
 
-  function _launchGame(difficulty) {
+  function _launchGame() {
     Words.resetSession();
-    _state = _initialState(difficulty);
+    _state = _initialState();
     _state.isRunning = true;
 
     UI.showScreen('screen-game');
@@ -125,7 +111,7 @@ const Game = (() => {
   // ══════════════════════════════════════════════════════════════════════
 
   function _loadNewWord() {
-    const word = Words.getWord(_state.level, _state.difficulty);
+    const word = Words.getWord(_state.level);
     const scrambled = Words.scramble(word);
 
     _state.currentWord      = word;
@@ -175,10 +161,6 @@ const Game = (() => {
     Audio.playCorrect();
     UI.onLetterCorrect(pos, letter, _state);
 
-    // Vibración breve
-    const settings = Storage.getSettings();
-    if (settings.vibrationEnabled) Utils.vibrate(30);
-
     // Comprobar si la palabra está completa
     if (_state.currentPosition === _state.currentWord.length) {
       _handleWordComplete();
@@ -199,10 +181,6 @@ const Game = (() => {
     // Animaciones / UI
     Audio.playWrong();
     UI.onLetterWrong(letter, _state);
-
-    // Vibración de error
-    const settings = Storage.getSettings();
-    if (settings.vibrationEnabled) Utils.vibrate(80);
 
     // Comprobar Game Over
     if (_state.lives <= 0) {
@@ -317,13 +295,11 @@ const Game = (() => {
       score:          _state.totalScore,
       wordsCompleted: _state.totalWords,
       errors:         _state.totalErrors,
-      difficulty:     _state.difficulty,
       streak:         _state.maxStreak,
     };
     Storage.recordGameResult(result);
 
     const prevBest = Storage.getBestScore();
-    // (recordGameResult ya actualizó el best, así que comparamos con el anterior)
     const isNewRecord = _state.totalScore > 0 && _state.totalScore >= prevBest;
 
     UI.showGameOver(_state, isNewRecord, isVictory);
@@ -351,7 +327,6 @@ const Game = (() => {
     Audio.playButton();
     _state.wordsInLevel      = 0;
     _state.levelPointsEarned = 0;
-    // Opcional: no penalizar vidas al reiniciar nivel
     _state.isPaused = false;
     UI.showScreen('screen-game');
     _loadNewWord();
@@ -365,14 +340,9 @@ const Game = (() => {
   }
 
   function playAgain() {
-    if (!_state) {
-      UI.showDifficulty();
-      return;
-    }
-    const diff = _state.difficulty;
     Audio.playButton();
     Words.resetSession();
-    _state = _initialState(diff);
+    _state = _initialState();
     _state.isRunning = true;
     UI.showScreen('screen-game');
     Audio.startMusic();

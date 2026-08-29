@@ -31,7 +31,6 @@ const Storage = (() => {
   const DEFAULT_SETTINGS = {
     soundsEnabled:    true,
     musicEnabled:     true,
-    vibrationEnabled: true,
   };
 
   const DEFAULT_STATS = {
@@ -101,10 +100,6 @@ const Storage = (() => {
   function saveSettings(partial) {
     _settings = { ...getSettings(), ...partial };
     _write(KEYS.SETTINGS, _settings);
-  }
-
-  function setVibration(enabled) {
-    saveSettings({ vibrationEnabled: !!enabled });
   }
 
   // ── API: Estadísticas ──────────────────────────────────────────────────────
@@ -248,7 +243,6 @@ const Storage = (() => {
     setPlayerName,
     getSettings,
     saveSettings,
-    setVibration,
     getStats,
     saveStats,
     recordGameResult,

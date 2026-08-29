@@ -68,18 +68,14 @@ const UI = (() => {
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════════
-  // MODAL DE DIFICULTAD
-  // ══════════════════════════════════════════════════════════════════════
-
   function showDifficulty() {
-    Audio.playButton();
-    document.getElementById('difficulty-overlay').classList.add('open');
+    // Arranque directo en nivel 1
+    Game.startGame();
   }
 
   function closeDifficulty(event) {
     const overlay = document.getElementById('difficulty-overlay');
-    if (!event || event.target === overlay) {
+    if (overlay) {
       overlay.classList.remove('open');
     }
   }
@@ -589,12 +585,10 @@ const UI = (() => {
 
     const tSound = document.getElementById('toggle-sounds');
     const tMusic = document.getElementById('toggle-music');
-    const tVib   = document.getElementById('toggle-vibration');
     const nameEl = document.getElementById('settings-name-display');
 
     if (tSound) tSound.checked = settings.soundsEnabled;
     if (tMusic) tMusic.checked = settings.musicEnabled;
-    if (tVib)   tVib.checked   = settings.vibrationEnabled !== false;
     if (nameEl) nameEl.textContent = Storage.getPlayerName();
   }
 
@@ -618,16 +612,7 @@ const UI = (() => {
 
   function showHelp() {
     Audio.playButton();
-    window.alert(
-      '🎮 CÓMO JUGAR\n\n' +
-      '1. Se muestra una palabra con letras desordenadas.\n' +
-      '2. Introduce las letras en el orden correcto.\n' +
-      '3. +10 puntos por letra correcta.\n' +
-      '4. -5 puntos y -1 vida por letra incorrecta.\n' +
-      '5. ¡Completa la palabra sin errores y gana +1 vida extra!\n' +
-      '6. Pasa todos los niveles para ser el campeón.\n\n' +
-      '¡Buena suerte!'
-    );
+    showScreen('screen-help');
   }
 
   // ══════════════════════════════════════════════════════════════════════
