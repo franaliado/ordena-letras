@@ -56,8 +56,9 @@
   await advanceProgress(100, 200);
   await Utils.delay(300);
 
-  // ── 6. Ir al menú principal ───────────────────────────────────────────────
-  UI.showScreen('screen-menu');
+  // ── 6. Inicializar historial nativo e ir al menú principal ───────────────
+  UI.initHistory();
+  UI.showScreen('screen-menu', false);
 
   // ── 7. Conectar teclado virtual (botones .key) ────────────────────────────
   document.getElementById('game-keyboard').addEventListener('click', function(e) {

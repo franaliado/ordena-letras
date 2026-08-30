@@ -11,12 +11,13 @@
 
 const UI = (() => {
 
-  // ── Historial de pantallas (para botón "Volver") ─────────────────────────
+  // ── Historial de pantallas (para botón "Volver" y navegación nativa) ───────
   let _screenHistory = [];
   let _currentScreen = 'screen-splash';
+  let _isPopState    = false;
 
   // ══════════════════════════════════════════════════════════════════════
-  // NAVEGACIÓN DE PANTALLAS
+  // NAVEGACIÓN DE PANTALLAS CON HISTORIAL NATIVO (history.pushState)
   // ══════════════════════════════════════════════════════════════════════
 
   function showScreen(id, addToHistory = true) {
@@ -31,6 +32,13 @@ const UI = (() => {
 
     if (addToHistory && _currentScreen !== id) {
       _screenHistory.push(_currentScreen);
+      if (!_isPopState) {
+        try {
+          history.pushState({ screenId: id }, '', '');
+        } catch (e) {
+          // Ignorar si el entorno bloquea pushState
+        }
+      }
     }
     _currentScreen = id;
 
@@ -40,12 +48,46 @@ const UI = (() => {
 
   function goBack() {
     Audio.playButton();
+    if (_screenHistory.length > 0) {
+      try {
+        history.back();
+      } catch (e) {
+        _applyLocalBack();
+      }
+    } else {
+      showScreen('screen-menu', false);
+    }
+  }
+
+  function _applyLocalBack() {
     const prev = _screenHistory.pop();
     if (prev) {
       showScreen(prev, false);
     } else {
       showScreen('screen-menu', false);
     }
+  }
+
+  function initHistory() {
+    // Estado inicial en el historial
+    try {
+      history.replaceState({ screenId: _currentScreen }, '', '');
+    } catch (e) {}
+
+    window.addEventListener('popstate', (e) => {
+      _isPopState = true;
+      try {
+        if (_screenHistory.length > 0) {
+          _applyLocalBack();
+        } else if (e.state && e.state.screenId && e.state.screenId !== _currentScreen) {
+          showScreen(e.state.screenId, false);
+        } else if (_currentScreen !== 'screen-menu' && _currentScreen !== 'screen-splash') {
+          showScreen('screen-menu', false);
+        }
+      } finally {
+        _isPopState = false;
+      }
+    });
   }
 
   function _onScreenShow(id) {
@@ -712,6 +754,7 @@ const UI = (() => {
     confirmResetData,
     showHelp,
     showToast,
+    initHistory,
   };
 
 })();
