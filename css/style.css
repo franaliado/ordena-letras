@@ -574,8 +574,9 @@ body {
    ══════════════════════════════════════════════════════════════ */
 #screen-menu {
   justify-content: space-between;
-  padding: var(--gap-lg) var(--gap-md) var(--gap-md);
+  padding: var(--gap-md) var(--gap-md) max(14px, calc(6px + var(--safe-bottom)));
   position: relative;
+  min-height: 100%;
 }
 
 /* Letras translúcidas de fondo flotando */
@@ -644,7 +645,26 @@ body {
   gap: 18px;
   width: 100%;
   padding-top: var(--gap-md);
-  padding-bottom: max(20px, calc(10px + var(--safe-bottom)));
+  padding-bottom: var(--gap-xs);
+}
+
+.menu-footer-credits {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  text-align: center;
+  margin-top: auto;
+  padding-top: 10px;
+  padding-bottom: max(6px, var(--safe-bottom));
+}
+
+.menu-footer-credits span {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--color-text-dim);
+  opacity: 0.85;
+  letter-spacing: 0.04em;
+  user-select: none;
 }
 
 .menu-icon-circle {
