@@ -111,7 +111,13 @@ const Game = (() => {
   // ══════════════════════════════════════════════════════════════════════
 
   function _loadNewWord() {
-    const word = Words.getWord(_state.level);
+    const requiredLength = Words.getLevelLength ? Words.getLevelLength(_state.level) : (_state.level + 3);
+    let word = Words.getWord(_state.level);
+
+    if (!word || word.length !== requiredLength) {
+      word = Words.getWord(_state.level);
+    }
+
     const scrambled = Words.scramble(word);
 
     _state.currentWord      = word;

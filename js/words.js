@@ -4,11 +4,11 @@
  * Responsable de:
  *  - Cargar el diccionario JSON local
  *  - Seleccionar palabras según nivel progresivo estricto:
- *      Nivel 1 -> 4 letras
- *      Nivel 2 -> 5 letras
- *      Nivel 3 -> 6 letras
- *      Nivel 4 -> 7 letras
- *      Nivel 5 -> 8 letras
+ *      Nivel 1 -> 4 letras exactas
+ *      Nivel 2 -> 5 letras exactas
+ *      Nivel 3 -> 6 letras exactas
+ *      Nivel 4 -> 7 letras exactas
+ *      Nivel 5 -> 8 letras exactas
  *  - Seleccionar palabras sin repetición dentro de una partida
  *  - Barajar las letras garantizando que nunca coincidan con el original
  */
@@ -16,9 +16,18 @@
 const Words = (() => {
 
   // ── Estado ──────────────────────────────────────────────────────────────────
-  let _dictionary = {};      // { "4": [...], "5": [...], ... }
+  let _dictionary = {};      // { "4": [...], "5": [...], "6": [...], "7": [...], "8": [...] }
   let _loaded     = false;
   let _usedWords  = new Set();  // palabras ya usadas en la partida actual
+
+  // Diccionario mínimo de emergencia con longitudes estrictas garantizadas
+  const EMERGENCY_DICTIONARY = {
+    '4': ['AGUA', 'AIRE', 'ALMA', 'ALTO', 'AMOR', 'ARCO', 'ARTE', 'AZUL', 'BAJO', 'BESO', 'BOCA', 'CASA', 'LUNA', 'ROSA', 'VIDA'],
+    '5': ['AMIGO', 'LIBRO', 'PLAYA', 'VERDE', 'NOCHE', 'CAMPO', 'FUEGO', 'MUNDO', 'ARBOL', 'PLAZA', 'BARCO', 'CANTO', 'CLIMA', 'DULCE', 'EXITO'],
+    '6': ['CAMINO', 'CIUDAD', 'TIEMPO', 'PUERTA', 'VIENTO', 'MUSICA', 'PUEBLO', 'VERDAD', 'BLANCO', 'JARDIN', 'ABUELA', 'BOSQUE', 'CABEZA', 'FUENTE', 'MAGICO'],
+    '7': ['PALABRA', 'CANCION', 'VENTANA', 'PLANETA', 'CORAZON', 'BELLEZA', 'TRABAJO', 'SOLDADO', 'TABLERO', 'CULTURA', 'BANDERA', 'CABALLO', 'ESTUDIO', 'ALEGRIA', 'MENSAJE'],
+    '8': ['AVENTURA', 'VICTORIA', 'HISTORIA', 'TELEFONO', 'SILENCIO', 'PRACTICA', 'UNIFORME', 'ESTUDIOS', 'MAESTRIA', 'ACADEMIA', 'DESASTRE', 'ESTRELLA', 'ELEFANTE', 'PACIENCIA', 'PRINCESA']
+  };
 
   // ── Carga del diccionario ───────────────────────────────────────────────────
 
@@ -31,27 +40,39 @@ const Words = (() => {
     try {
       const res  = await fetch('data/words.json');
       const data = await res.json();
-      // Normalizar todas las palabras al cargar
-      const normalized = {};
-      for (const [len, arr] of Object.entries(data)) {
-        normalized[len] = arr
+      
+      const normalized = {
+        '4': [],
+        '5': [],
+        '6': [],
+        '7': [],
+        '8': []
+      };
+
+      for (const [lenKey, arr] of Object.entries(data)) {
+        const requiredLen = parseInt(lenKey, 10);
+        if (![4, 5, 6, 7, 8].includes(requiredLen)) continue;
+        if (!Array.isArray(arr)) continue;
+
+        // FILTRADO ESTRICTO E INQUEBRANTABLE POR LONGITUD EXACTA DEL NIVEL
+        normalized[String(requiredLen)] = arr
           .map(w => Utils.normalize(w))
-          .filter(w => w.length >= 4 && /^[A-Z]+$/.test(w))
-          // eliminar duplicados dentro del mismo bucket
+          .filter(w => typeof w === 'string' && w.length === requiredLen && /^[A-Z]+$/.test(w))
           .filter((w, i, self) => self.indexOf(w) === i);
       }
+
+      // Asegurar que ningún bucket quede vacío
+      for (const key of ['4', '5', '6', '7', '8']) {
+        if (!normalized[key] || normalized[key].length === 0) {
+          normalized[key] = EMERGENCY_DICTIONARY[key];
+        }
+      }
+
       _dictionary = normalized;
       _loaded = true;
     } catch (err) {
       console.error('[Words] No se pudo cargar el diccionario:', err);
-      // Diccionario mínimo de emergencia
-      _dictionary = {
-        '4': ['AMOR','CASA','LUNA','ROSA','VINO','LAGO','MANO','ROCA','PALO','GATO','AZUL','ALMA','FLOR','SOLO','MESA'],
-        '5': ['AMIGO','LIBRO','CAMPO','FONDO','MUNDO','BANCO','PLAZA','CLIMA','PARTE','LUGAR','PLAYA','ARBOL','NOCHE','VERDE','FUEGO'],
-        '6': ['CAMINO','CIUDAD','TIEMPO','FUENTE','CABEZA','JARDIN','FLORES','PUERTA','VIENTO','ESCUELA','PUEBLO','MUSICA','VERDAD','ABUELA','BLANCO'],
-        '7': ['PALABRA','CABALLO','CANCION','FUTBOL','ALEGRIA','CULTURA','TABLERO','ESTRELLA','HERMANO','VENTANA','PLANETA','CORAZON','BELLEZA','SOLDADO','TRABAJO'],
-        '8': ['AVENTURA','FANTASIA','VICTORIA','BELLEZA','MELODIA','CARACTER','MILAGROS','UNIVERSO','ELEFANTE','HISTORIA','JUVENTUD','MONTANAS','PRACTICA','TELEFONO','SILENCIO']
-      };
+      _dictionary = { ...EMERGENCY_DICTIONARY };
       _loaded = true;
     }
   }
@@ -66,28 +87,33 @@ const Words = (() => {
 
   /**
    * Obtiene la longitud de palabra para un nivel:
-   * Nivel 1 = 4 letras
-   * Nivel 2 = 5 letras
-   * Nivel 3 = 6 letras
-   * Nivel 4 = 7 letras
-   * Nivel 5 = 8 letras
-   * @param {number} level - 1-indexed
+   * Nivel 1 = 4 letras exactas
+   * Nivel 2 = 5 letras exactas
+   * Nivel 3 = 6 letras exactas
+   * Nivel 4 = 7 letras exactas
+   * Nivel 5 = 8 letras exactas
+   * @param {number} level - 1-indexed (1 a 5)
+   * @returns {number} Longitud requerida
    */
   function getLengthForLevel(level) {
     const lvl = Math.max(1, Math.min(5, parseInt(level, 10) || 1));
-    return lvl + 3; // 1->4, 2->5, 3->6, 4->7, 5->8
+    const targetMap = { 1: 4, 2: 5, 3: 6, 4: 7, 5: 8 };
+    return targetMap[lvl] || (lvl + 3);
   }
 
   /**
    * Selecciona una palabra para el nivel dado de forma estricta según su longitud.
    * @param {number} level — 1-indexed (1 a 5)
-   * @returns {string} Palabra en mayúsculas
+   * @returns {string} Palabra en mayúsculas de longitud exacta
    */
   function getWord(level) {
     const targetLen = getLengthForLevel(level);
 
-    // Buscar en el bucket de longitud exacta
+    // Obtener candidatos del bucket correspondiente
     let candidates = _getPoolByLength(targetLen);
+
+    // Blindaje adicional: asegurar que cada palabra candidata tenga exactamente targetLen caracteres
+    candidates = candidates.filter(w => typeof w === 'string' && w.length === targetLen && /^[A-Z]+$/.test(w));
 
     // Excluir palabras ya usadas en la sesión actual
     let available = candidates.filter(w => !_usedWords.has(w));
@@ -104,10 +130,18 @@ const Words = (() => {
       available = candidates;
     }
 
-    const word = Utils.randomFrom(available);
+    let word = Utils.randomFrom(available);
+
+    // Red de seguridad absoluta: si no se obtuvo una palabra de la longitud exacta requerida
+    if (!word || word.length !== targetLen) {
+      const emergencyList = (EMERGENCY_DICTIONARY[String(targetLen)] || ['AGUA']).map(w => Utils.normalize(w));
+      word = Utils.randomFrom(emergencyList);
+    }
+
     if (word) {
       _usedWords.add(word);
     }
+
     return word || '';
   }
 
@@ -115,7 +149,7 @@ const Words = (() => {
    * Obtiene el pool de palabras para una longitud dada.
    */
   function _getPoolByLength(len) {
-    return (_dictionary[String(len)] || []);
+    return (_dictionary[String(len)] || EMERGENCY_DICTIONARY[String(len)] || []);
   }
 
   // ── Barajado de letras ──────────────────────────────────────────────────────
