@@ -115,9 +115,18 @@
     }
   });
 
-  // ── 9. Input de nombre: Enter para confirmar ───────────────────────────────
+  // ── 9. Input de nombre: Enter para confirmar y transformación a mayúsculas ──
   const nameInput = document.getElementById('player-name-input');
   if (nameInput) {
+    nameInput.addEventListener('input', function() {
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      this.value = this.value.toUpperCase();
+      if (start !== null && end !== null) {
+        this.setSelectionRange(start, end);
+      }
+    });
+
     nameInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') UI.confirmPlayerName();
     });

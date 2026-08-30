@@ -747,6 +747,12 @@ body {
   opacity: 0.5;
 }
 
+.input-wrap input.input-error {
+  border-color: var(--color-red) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35) !important;
+  animation: shake 0.35s ease;
+}
+
 /* ══════════════════════════════════════════════════════════════
    PANTALLA 4 — JUEGO
    ══════════════════════════════════════════════════════════════ */

@@ -83,7 +83,7 @@ const Storage = (() => {
   }
 
   function setPlayerName(name) {
-    const clean = String(name).trim().slice(0, 15) || 'Jugador';
+    const clean = String(name || '').trim().toUpperCase().slice(0, 10) || 'Jugador';
     _write(KEYS.PLAYER_NAME, clean);
     return clean;
   }

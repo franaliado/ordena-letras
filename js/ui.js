@@ -129,8 +129,26 @@ const UI = (() => {
   function confirmPlayerName() {
     Audio.playButton();
     const input = document.getElementById('player-name-input');
-    const raw   = (input ? input.value : '').trim();
-    const name  = Storage.setPlayerName(raw || 'Jugador');
+    const raw   = input ? input.value : '';
+    const validation = Utils.validatePlayerName(raw);
+
+    if (!validation.valid) {
+      if (input) {
+        input.classList.remove('input-error');
+        void input.offsetWidth; // Forzar reflujo para reiniciar la animación shake
+        input.classList.add('input-error');
+        input.focus();
+      }
+      showToast(`⚠️ ${validation.error}`, 3000);
+      Audio.playWrong();
+      return;
+    }
+
+    if (input) {
+      input.classList.remove('input-error');
+    }
+
+    const name = Storage.setPlayerName(validation.sanitized);
     showToast(`¡Hola, ${name}! 👋`);
     Game.launchAfterName();
   }

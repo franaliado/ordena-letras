@@ -49,6 +49,31 @@ const Utils = (() => {
   }
 
   /**
+   * Valida el formato y reglas del nombre del jugador:
+   * - Longitud: 3 a 10 caracteres
+   * - Primer carácter: DEBE ser una letra (A-Z)
+   * - Caracteres permitidos: Solo letras mayúsculas (A-Z), números (0-9) y guion medio (-)
+   * @param {string} str
+   * @returns {{valid: boolean, error?: string, sanitized: string}}
+   */
+  function validatePlayerName(str) {
+    const raw = String(str || '').trim().toUpperCase();
+    if (!raw || raw.length < 3) {
+      return { valid: false, error: 'El nombre debe tener al menos 3 caracteres.', sanitized: raw };
+    }
+    if (raw.length > 10) {
+      return { valid: false, error: 'El nombre no puede tener más de 10 caracteres.', sanitized: raw };
+    }
+    if (!/^[A-Z]/.test(raw)) {
+      return { valid: false, error: 'El primer carácter debe ser una letra (A-Z).', sanitized: raw };
+    }
+    if (!/^[A-Z0-9-]+$/.test(raw)) {
+      return { valid: false, error: 'Solo se permiten letras (A-Z), números (0-9) y guiones (-).', sanitized: raw };
+    }
+    return { valid: true, sanitized: raw };
+  }
+
+  /**
    * Clamp: restringe un valor entre min y max.
    */
   function clamp(value, min, max) {
@@ -170,6 +195,7 @@ const Utils = (() => {
     flashClass,
     isAnagram,
     deepClone,
+    validatePlayerName,
   };
 
 })();
