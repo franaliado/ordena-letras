@@ -4,18 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0F172A" />
-  <meta name="description" content="Ordena Letras — El reto de las palabras. Juego de palabras en español." />
+  <meta name="description" content="OrdenaLetras — El reto de las palabras. Juego de palabras en español." />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Ordena Letras — El reto de las palabras</title>
+  <title>OrdenaLetras — El reto de las palabras</title>
 
   <!-- Favicon: solo el icono oficial del sistema, NUNCA dentro de la interfaz gráfica -->
   <link rel="icon" type="image/jpeg" href="OrdenaLetras_icono_oficial.jpg" />
   <link rel="apple-touch-icon" href="OrdenaLetras_icono_oficial.jpg" />
   <link rel="manifest" href="manifest.json" />
 
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=1.0.1" />
 </head>
 <body>
 
@@ -492,7 +492,7 @@
     <!-- Sección: Acerca de -->
     <div class="settings-section" style="margin-top:auto; padding-bottom: var(--gap-lg);">
       <div class="card" style="text-align:center; gap:4px; padding: var(--gap-md);">
-        <p style="font-size:var(--fs-sm); font-weight:700; color:var(--color-white);">Ordena Letras</p>
+        <p style="font-size:var(--fs-sm); font-weight:700; color:var(--color-white);">OrdenaLetras</p>
         <p style="font-size:var(--fs-xs); color:var(--color-text-dim);">El reto de las palabras</p>
         <p style="font-size:var(--fs-xs); color:var(--color-text-dim);">Versión 1.0 — Español</p>
       </div>
@@ -578,14 +578,14 @@
 <!-- Contenedor de toasts -->
 <div class="toast-container" id="toast-container"></div>
 
-<!-- Scripts — orden de dependencias -->
-<script src="js/utils.js"></script>
-<script src="js/storage.js"></script>
-<script src="js/audio.js"></script>
-<script src="js/words.js"></script>
-<script src="js/game.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/main.js"></script>
+<!-- Scripts — orden de dependencias con control de caché -->
+<script src="js/utils.js?v=1.0.1"></script>
+<script src="js/storage.js?v=1.0.1"></script>
+<script src="js/audio.js?v=1.0.1"></script>
+<script src="js/words.js?v=1.0.1"></script>
+<script src="js/game.js?v=1.0.1"></script>
+<script src="js/ui.js?v=1.0.1"></script>
+<script src="js/main.js?v=1.0.1"></script>
 
 </body>
 </html>
