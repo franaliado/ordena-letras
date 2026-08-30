@@ -19,7 +19,7 @@ const Game = (() => {
     INITIAL_LIVES:           15,
     MAX_LIVES:               15,
     WORDS_PER_LEVEL:         5,
-    TOTAL_LEVELS:            7,
+    TOTAL_LEVELS:            5,
 
     // Puntuación (SRS §10 + Guía Visual)
     POINTS_PER_LETTER:       10,   // +10 por letra correcta
