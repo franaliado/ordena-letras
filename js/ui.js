@@ -77,12 +77,18 @@ const UI = (() => {
     window.addEventListener('popstate', (e) => {
       _isPopState = true;
       try {
+        // El botón físico de atrás del teléfono dispara popstate.
+        // Navegamos siempre hacia atrás en nuestro historial interno
+        // en lugar de dejar que el navegador/WebView cierre la app.
         if (_screenHistory.length > 0) {
           _applyLocalBack();
-        } else if (e.state && e.state.screenId && e.state.screenId !== _currentScreen) {
-          showScreen(e.state.screenId, false);
         } else if (_currentScreen !== 'screen-menu' && _currentScreen !== 'screen-splash') {
+          // Si no hay historial interno, volver al menú
           showScreen('screen-menu', false);
+        } else {
+          // Ya estamos en el menú: empujar un estado vacuo para que el siguiente
+          // pulsado no cierre la app (el usuario tendría que pulsar dos veces).
+          try { history.pushState({ screenId: 'screen-menu' }, '', ''); } catch (_) {}
         }
       } finally {
         _isPopState = false;
@@ -343,28 +349,32 @@ const UI = (() => {
 
   /**
    * Reacción visual a una letra incorrecta.
+   * @param {string} letter
+   * @param {object} state
+   * @param {number} penalty — penalización aplicada sobre el premio de la palabra
    */
-  function onLetterWrong(letter, state) {
+  function onLetterWrong(letter, state, penalty) {
+    const penaltyAmt = penalty || 4;
     // Flash rojo en el slot actual
     const slot = document.getElementById(`slot-${state.currentPosition}`);
     if (slot) Utils.flashClass(slot, 'error-flash', 500);
 
-    // Feedback textual
+    // Feedback textual con la penalización real
     const fb = document.getElementById('game-feedback-text');
     if (fb) {
-      fb.textContent = `❌ -5 puntos`;
+      fb.textContent = `❌ -${penaltyAmt} pts al premio`;
       fb.className   = 'feedback-text show-error';
-      setTimeout(() => { fb.className = 'feedback-text'; }, 1000);
+      setTimeout(() => { fb.className = 'feedback-text'; }, 1200);
     }
 
     // Efecto en la tecla
     const keyEl = document.querySelector(`.key[data-key="${letter}"]`);
     if (keyEl) Utils.flashClass(keyEl, 'key-error-flash', 400);
 
-    // Puntos flotantes negativos
-    _showFloatingPoints(`${Game.getConfig().POINTS_ERROR}`, slot, 'negative');
+    // Puntos flotantes negativos (penalización sobre el premio)
+    _showFloatingPoints(`-${penaltyAmt}`, slot, 'negative');
 
-    // Actualizar HUD de puntos y vidas
+    // Actualizar HUD de puntos y vidas (totalScore no cambia en el fallo, solo el premio potencial)
     const pointsEl = document.getElementById('hud-points');
     if (pointsEl) pointsEl.textContent = Utils.formatScore(state.totalScore);
 
@@ -388,7 +398,7 @@ const UI = (() => {
   // PANTALLA: PALABRA CORRECTA
   // ══════════════════════════════════════════════════════════════════════
 
-  function showWordComplete(state, isPerfect, lifeGained, wordPoints) {
+  function showWordComplete(state, isPerfect, lifeGained, wordPoints, breakdown) {
     // Título
     const title = document.getElementById('wc-title');
     if (title) title.textContent = isPerfect ? '¡PERFECTO!' : '¡CORRECTO!';
@@ -414,9 +424,23 @@ const UI = (() => {
       });
     }
 
-    // Puntos
+    // Puntos con desglose
     const pointsEl = document.getElementById('wc-points');
-    if (pointsEl) pointsEl.textContent = `+${Utils.formatScore(wordPoints)} PUNTOS`;
+    if (pointsEl) {
+      if (breakdown && !isPerfect && breakdown.totalPenalty > 0) {
+        // Mostrar desglose: premio máximo menos penalizaciones
+        pointsEl.innerHTML =
+          `<span style="font-size:0.75em;color:var(--color-text-dim);">` +
+          `Premio base: ${breakdown.maxPrize} &minus; Penalización: ${breakdown.totalPenalty}</span>` +
+          `<br>+${Utils.formatScore(breakdown.prizAfterPen)} PUNTOS`;
+      } else if (breakdown && isPerfect) {
+        pointsEl.innerHTML =
+          `+${Utils.formatScore(breakdown.prizAfterPen)} + ${breakdown.perfectBonus} bonus`;
+        pointsEl.textContent = `+${Utils.formatScore(breakdown.finalWordPrize)} PUNTOS`;
+      } else {
+        pointsEl.textContent = `+${Utils.formatScore(wordPoints)} PUNTOS`;
+      }
+    }
 
     // Bonus de vida
     const lifeEl = document.getElementById('wc-life-bonus');
