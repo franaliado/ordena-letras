@@ -428,14 +428,15 @@ const UI = (() => {
     const pointsEl = document.getElementById('wc-points');
     if (pointsEl) {
       if (breakdown && !isPerfect && breakdown.totalPenalty > 0) {
-        // Mostrar desglose: premio máximo menos penalizaciones
+        // Formato: "Premio base: 100" + "[X] errores: -[Y]" + total
         pointsEl.innerHTML =
-          `<span style="font-size:0.75em;color:var(--color-text-dim);">` +
-          `Premio base: ${breakdown.maxPrize} &minus; Penalización: ${breakdown.totalPenalty}</span>` +
-          `<br>+${Utils.formatScore(breakdown.prizAfterPen)} PUNTOS`;
+          `<span style="font-size:0.75em;color:var(--color-text-dim);display:block;line-height:1.6;">` +
+          `Premio base: ${breakdown.maxPrize}</span>` +
+          `<span style="font-size:0.75em;color:var(--color-red);display:block;line-height:1.6;">` +
+          `${state.wordErrors} error${state.wordErrors !== 1 ? 'es' : ''}: -${breakdown.totalPenalty}</span>` +
+          `+${Utils.formatScore(breakdown.prizAfterPen)} PUNTOS`;
       } else if (breakdown && isPerfect) {
-        pointsEl.innerHTML =
-          `+${Utils.formatScore(breakdown.prizAfterPen)} + ${breakdown.perfectBonus} bonus`;
+        // Sin fallos: mostrar el total limpio
         pointsEl.textContent = `+${Utils.formatScore(breakdown.finalWordPrize)} PUNTOS`;
       } else {
         pointsEl.textContent = `+${Utils.formatScore(wordPoints)} PUNTOS`;
