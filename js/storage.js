@@ -18,7 +18,8 @@ const Storage = (() => {
     STATS:        'ol_stats',
     HISTORY:      'ol_history',
     SETTINGS:     'ol_settings',
-    RECORDS:      'ol_records',     // top 10 local
+    RECORDS:      'ol_records',     // historial completo de récords del dispositivo
+    NAME_SET:     'ol_name_set',    // flag: el jugador ya eligió su nombre alguna vez
   };
 
   // ── Estado de configuración (cacheado en memoria) ───────────────────────────
@@ -82,9 +83,18 @@ const Storage = (() => {
     return _read(KEYS.PLAYER_NAME) || 'Jugador';
   }
 
+  /**
+   * Devuelve true si el jugador ya registró su nombre al menos una vez.
+   * Permite distinguir primer registro vs. cambio de nombre desde ajustes.
+   */
+  function hasPlayerName() {
+    return _read(KEYS.NAME_SET) === true;
+  }
+
   function setPlayerName(name) {
     const clean = String(name || '').trim().toUpperCase().slice(0, 10) || 'Jugador';
     _write(KEYS.PLAYER_NAME, clean);
+    _write(KEYS.NAME_SET, true);   // marcar que el jugador ya eligió nombre
     return clean;
   }
 
@@ -190,22 +200,37 @@ const Storage = (() => {
     _write(KEYS.HISTORY, trimmed);
   }
 
-  // ── API: Top 10 récords ────────────────────────────────────────────────────
+  // ── API: Historial de récords (todos los del dispositivo) ─────────────────
 
   function getRecords() {
     return _read(KEYS.RECORDS) || [];
   }
 
   /**
-   * Añade una entrada al top 10. Mantiene la lista ordenada y limitada a 10.
+   * Añade una entrada al historial de récords del dispositivo.
+   * El historial es ilimitado: cada partida genera una entrada con el nombre
+   * con el que se jugó (aunque luego se cambie el nombre, esas entradas conservan
+   * el nombre original). Solo se pierden al desinstalar la app.
    * @param {{ name: string, score: number }}
    */
   function addRecord(entry) {
     const records = getRecords();
-    records.push({ name: entry.name, score: entry.score });
+    records.push({
+      name:  entry.name,
+      score: entry.score,
+      date:  Utils.todayString ? Utils.todayString() : new Date().toLocaleDateString('es-ES'),
+    });
+    // Ordenar de mayor a menor puntuación (para renderizado eficiente)
     records.sort((a, b) => b.score - a.score);
-    const top10 = records.slice(0, 10);
-    _write(KEYS.RECORDS, top10);
+    _write(KEYS.RECORDS, records);
+  }
+
+  /**
+   * Devuelve solo los récords del jugador actual (por nombre).
+   * @param {string} playerName
+   */
+  function getPersonalRecords(playerName) {
+    return getRecords().filter(r => r.name === playerName);
   }
 
   // ── API: Mejor puntuación (acceso rápido) ─────────────────────────────────
@@ -223,7 +248,7 @@ const Storage = (() => {
     } catch (_) {}
     _settings = null;
     _stats = null;
-    setPlayerName(name); // restaura nombre
+    setPlayerName(name); // restaura nombre (y mantiene NAME_SET=true)
   }
 
   // ── Puente App Inventor: listener de WebViewString ─────────────────────────
@@ -240,6 +265,7 @@ const Storage = (() => {
   // ── API pública ────────────────────────────────────────────────────────────
   return {
     getPlayerName,
+    hasPlayerName,
     setPlayerName,
     getSettings,
     saveSettings,
@@ -248,6 +274,7 @@ const Storage = (() => {
     recordGameResult,
     getHistory,
     getRecords,
+    getPersonalRecords,
     getBestScore,
     resetAll,
   };

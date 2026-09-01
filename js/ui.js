@@ -100,6 +100,11 @@ const UI = (() => {
     switch (id) {
       case 'screen-records':
         renderRecords('top10');
+        // Resetear tab activo visualmente
+        const t10 = document.getElementById('tab-top10');
+        const tp  = document.getElementById('tab-personal');
+        if (t10) t10.classList.add('active');
+        if (tp)  tp.classList.remove('active');
         break;
       case 'screen-stats':
         renderStats();
@@ -108,10 +113,26 @@ const UI = (() => {
         renderSettings();
         break;
       case 'screen-player-name':
-        // Rellenar con nombre actual si existe
-        const input = document.getElementById('player-name-input');
-        const name  = Storage.getPlayerName();
-        if (input && name !== 'Jugador') input.value = name;
+        // Distinguir contexto: primer registro vs. cambio de nombre
+        const isChanging = Storage.hasPlayerName();
+        const titleEl = document.getElementById('player-name-title');
+        const subEl   = document.getElementById('player-name-sub');
+        const btnEl   = document.getElementById('btn-name-continue');
+        const input   = document.getElementById('player-name-input');
+        if (isChanging) {
+          if (titleEl) titleEl.textContent = '✏️ CAMBIAR NOMBRE';
+          if (subEl)   subEl.textContent   = 'Tu nuevo nombre (partidas anteriores conservan el nombre original)';
+          if (btnEl)   btnEl.textContent   = 'GUARDAR NOMBRE';
+          // Rellenar con nombre actual
+          const name = Storage.getPlayerName();
+          if (input && name !== 'Jugador') input.value = name;
+        } else {
+          if (titleEl) titleEl.textContent = '¿CÓMO TE LLAMAS?';
+          if (subEl)   subEl.textContent   = 'Ingresa tu apodo para empezar';
+          if (btnEl)   btnEl.textContent   = 'CONTINUAR';
+          if (input)   input.value = '';
+        }
+        if (input) input.focus();
         break;
     }
   }
@@ -154,9 +175,20 @@ const UI = (() => {
       input.classList.remove('input-error');
     }
 
+    // Detectar contexto: ¿el jugador ya tenía nombre registrado?
+    const wasRegistered = Storage.hasPlayerName();
+
     const name = Storage.setPlayerName(validation.sanitized);
-    showToast(`¡Hola, ${name}! 👋`);
-    Game.launchAfterName();
+
+    if (wasRegistered) {
+      // Vino desde Ajustes → solo guardar y volver
+      showToast(`✅ Nombre actualizado: ${name}`);
+      goBack(); // volver a la pantalla anterior (Ajustes)
+    } else {
+      // Primer registro → lanzar el juego
+      showToast(`¡Hola, ${name}! 👋`);
+      Game.launchAfterName();
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -558,11 +590,23 @@ const UI = (() => {
     if (!list) return;
     Utils.clearElement(list);
 
-    const records    = Storage.getRecords();
-    const playerName = Storage.getPlayerName();
+    const allRecords  = Storage.getRecords();
+    const playerName  = Storage.getPlayerName();
+
+    // Seleccionar datos según la pestaña activa
+    let records;
+    if (tab === 'personal') {
+      records = Storage.getPersonalRecords(playerName);
+    } else {
+      // top10: todos los registros del dispositivo (ya vienen ordenados de mayor a menor)
+      records = allRecords;
+    }
 
     if (records.length === 0) {
-      const empty = Utils.createElement('p', '', '¡Aún no hay récords! Sé el primero. 🎮');
+      const msg = tab === 'personal'
+        ? '¡Aún no tienes puntuaciones. ¡Juega tu primera partida! 🎮'
+        : '¡Aún no hay récords! Sé el primero. 🎮';
+      const empty = Utils.createElement('p', '', msg);
       empty.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-xl) 0;font-size:var(--fs-sm);';
       list.appendChild(empty);
       return;
@@ -576,12 +620,21 @@ const UI = (() => {
       const badge = Utils.createElement('div', `record-rank ${_rankClass(rank)}`, String(rank));
       item.appendChild(badge);
 
+      // Columna central: nombre + fecha opcional
+      const nameWrapper = Utils.createElement('div', 'record-name-wrap');
       const name  = Utils.createElement('span', 'record-name', rec.name || 'Jugador');
+      nameWrapper.appendChild(name);
+      if (rec.date) {
+        const dateEl = Utils.createElement('span', 'record-date', rec.date);
+        nameWrapper.appendChild(dateEl);
+      }
+
       const score = Utils.createElement('span', 'record-score', Utils.formatScore(rec.score));
 
-      item.appendChild(name);
+      item.appendChild(nameWrapper);
       item.appendChild(score);
 
+      // Resaltar las partidas del jugador actual
       if (rec.name === playerName) item.classList.add('highlight');
 
       list.appendChild(item);
