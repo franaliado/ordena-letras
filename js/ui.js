@@ -616,26 +616,33 @@ const UI = (() => {
       const item = Utils.createElement('div', 'record-item');
       const rank = i + 1;
 
+      // Columna izquierda: posición + nombre del jugador
+      const leftCol = Utils.createElement('div', 'record-left');
+
       // Badge de posición
       const badge = Utils.createElement('div', `record-rank ${_rankClass(rank)}`, String(rank));
-      item.appendChild(badge);
+      leftCol.appendChild(badge);
 
-      // Columna central: nombre + fecha opcional
-      const nameWrapper = Utils.createElement('div', 'record-name-wrap');
-      const name  = Utils.createElement('span', 'record-name', rec.name || 'Jugador');
-      nameWrapper.appendChild(name);
-      if (rec.date) {
-        const dateEl = Utils.createElement('span', 'record-date', rec.date);
-        nameWrapper.appendChild(dateEl);
+      // Nombre del jugador (sin fecha)
+      const name = Utils.createElement('span', 'record-name', rec.name || 'Jugador');
+      leftCol.appendChild(name);
+
+      // Si es el jugador actual, añadir tag sutil "TÚ" y clase highlight
+      if (rec.name === playerName) {
+        const youTag = Utils.createElement('span', 'record-you-tag', 'TÚ');
+        leftCol.appendChild(youTag);
+        item.classList.add('highlight');
       }
 
+      // Columna derecha: puntuación numérica alineada a la derecha
+      const rightCol = Utils.createElement('div', 'record-right');
       const score = Utils.createElement('span', 'record-score', Utils.formatScore(rec.score));
+      const ptsLabel = Utils.createElement('span', 'record-pts-label', 'PTS');
+      rightCol.appendChild(score);
+      rightCol.appendChild(ptsLabel);
 
-      item.appendChild(nameWrapper);
-      item.appendChild(score);
-
-      // Resaltar las partidas del jugador actual
-      if (rec.name === playerName) item.classList.add('highlight');
+      item.appendChild(leftCol);
+      item.appendChild(rightCol);
 
       list.appendChild(item);
     });
