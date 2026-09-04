@@ -3,7 +3,7 @@
  * Permite funcionamiento offline (caché de recursos estáticos).
  */
 
-const CACHE_NAME = 'ordenaletras-v2';
+const CACHE_NAME = 'ordenaletras-v3';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -56,6 +56,11 @@ self.addEventListener('fetch', event => {
 
   // Solo gestionar GET
   if (event.request.method !== 'GET') return;
+
+  // Ignorar peticiones a Supabase y al CDN para que el Service Worker no las intercepte
+  if (url.hostname.includes('supabase.co') || url.hostname.includes('jsdelivr.net')) {
+    return;
+  }
 
   // Recursos del propio origen: cache-first
   if (url.origin === self.location.origin) {
