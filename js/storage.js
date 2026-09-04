@@ -14,6 +14,7 @@ const Storage = (() => {
   // ── Claves de localStorage ──────────────────────────────────────────────────
   const KEYS = {
     PLAYER_NAME:  'ol_player_name',
+    PLAYER_ID:    'ol_player_id',   // UUID de la tabla players en Supabase
     BEST_SCORE:   'ol_best_score',
     STATS:        'ol_stats',
     HISTORY:      'ol_history',
@@ -81,6 +82,19 @@ const Storage = (() => {
 
   function getPlayerName() {
     return _read(KEYS.PLAYER_NAME) || 'Jugador';
+  }
+
+  function getPlayerId() {
+    return _read(KEYS.PLAYER_ID) || null;
+  }
+
+  function setPlayerId(id) {
+    if (id) {
+      _write(KEYS.PLAYER_ID, id);
+    } else {
+      localStorage.removeItem(KEYS.PLAYER_ID);
+    }
+    return id;
   }
 
   /**
@@ -180,11 +194,18 @@ const Storage = (() => {
       date:       Utils.todayString(),
     });
 
-    // Top 10 récords
+    // Top 10 récords locales
     addRecord({
       name:  getPlayerName(),
       score: result.score || 0,
     });
+
+    // Guardar en Supabase de forma asíncrona
+    if (typeof SupabaseClient !== 'undefined' && SupabaseClient.saveScore) {
+      SupabaseClient.saveScore(result.score || 0, result.level || 1).catch(err => {
+        console.warn('[Storage] Error al guardar récord en Supabase:', err);
+      });
+    }
   }
 
   // ── API: Historial de partidas ─────────────────────────────────────────────
@@ -265,6 +286,8 @@ const Storage = (() => {
   // ── API pública ────────────────────────────────────────────────────────────
   return {
     getPlayerName,
+    getPlayerId,
+    setPlayerId,
     hasPlayerName,
     setPlayerName,
     getSettings,

@@ -3,7 +3,7 @@
  * Permite funcionamiento offline (caché de recursos estáticos).
  */
 
-const CACHE_NAME = 'ordenaletras-v1';
+const CACHE_NAME = 'ordenaletras-v2';
 
 const ASSETS_TO_CACHE = [
   './',
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
   './css/style.css',
   './js/utils.js',
   './js/storage.js',
+  './js/supabaseClient.js',
   './js/audio.js',
   './js/words.js',
   './js/game.js',

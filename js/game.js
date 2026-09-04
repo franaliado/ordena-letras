@@ -4,8 +4,10 @@
  * Responsable de:
  *  - Estado completo de la partida
  *  - Mecánica de letras (acierto/error)
- *  - Puntuación, vidas, niveles
- *  - Transiciones entre pantallas de juego
+ *  - Puntuación base por nivel (100 a 500)
+ *  - Sistema de vidas (15 vidas, penalización de 1 vida por error, sin restar puntos)
+ *  - Recuperación de vida extra según longitud de palabra y margen de error
+ *  - Progresión ilimitada de niveles (4 a 12 letras)
  *
  * NO toca el DOM directamente; delega en UI.
  */
@@ -13,35 +15,66 @@
 const Game = (() => {
 
   // ══════════════════════════════════════════════════════════════════════
-  // CONFIGURACIÓN CENTRAL — todos los parámetros ajustables aquí
+  // CONFIGURACIÓN CENTRAL
   // ══════════════════════════════════════════════════════════════════════
   const CONFIG = {
     INITIAL_LIVES:           15,
     MAX_LIVES:               15,
     WORDS_PER_LEVEL:         5,
-    TOTAL_LEVELS:            5,
 
-    // Puntuación base por completar una palabra (según nivel)
-    // Nivel 1: 4 letras → base 150 | Nivel 2: 5 letras → 200 | ...
-    // Simplificado: premio base fijo por letra correcta + bonus de palabra
-    POINTS_PER_LETTER:       10,   // +10 por letra correcta (se acumula en totalScore al escribir)
-    POINTS_PER_WORD:         100,  // bonus al completar la palabra
-    POINTS_PERFECT_BONUS:    50,   // bonus adicional si sin errores
+    // Puntuación por letra correcta
+    POINTS_PER_LETTER:       10,   // +10 por letra correcta al escribir
 
-    // Penalización por fallo (sobre el premio potencial de la palabra)
-    PENALTY_NORMAL:          4,    // -4 pts del premio potencial (niveles 1-4)
-    PENALTY_LAST_LEVEL:      3,    // -3 pts del premio potencial (nivel 5)
-    MIN_WORD_PRIZE:          4,    // El premio de la palabra no puede bajar de 4 pts
+    // Recuperación de vidas
+    LIFE_BONUS:              1,    // +1 vida al cumplir condición de nivel
 
-    POINTS_ERROR:            -5,   // Referencia legacy (UI feedback)
     MIN_SCORE:               0,    // La puntuación total no puede bajar de 0
-
-    // Recuperación de vida: al completar palabra perfecta (sin errores)
-    LIFE_ON_PERFECT:         1,
-
-    // Preparado para racha (streak) — no activo en V1
-    STREAK_ENABLED:          false,
   };
+
+  /**
+   * Puntuación base por palabra completada según el nivel:
+   * Nivel 1 (4 letras): 100 pts
+   * Nivel 2 (5 letras): 150 pts
+   * Nivel 3 (6 letras): 200 pts
+   * Nivel 4 (7 letras): 250 pts
+   * Nivel 5 (8 letras): 300 pts
+   * Nivel 6 (9 letras): 350 pts
+   * Nivel 7 (10 letras): 400 pts
+   * Nivel 8 (11 letras): 450 pts
+   * Nivel 9+ (12 letras): 500 pts
+   *
+   * @param {number} level
+   * @returns {number}
+   */
+  function getBasePointsForLevel(level) {
+    const lvl = Math.max(1, parseInt(level, 10) || 1);
+    return Math.min(500, 100 + (Math.min(lvl, 9) - 1) * 50);
+  }
+
+  /**
+   * Determina si el jugador califica para ganar 1 vida extra según la longitud
+   * de la palabra y los errores cometidos:
+   * - De 4 a 6 letras: Exige 0 errores.
+   * - De 7 a 8 letras: Permite hasta 1 error máximo.
+   * - De 9 a 10 letras: Permite hasta 2 errores máximos.
+   * - De 11 a 12 letras: Permite hasta 3 errores máximos.
+   *
+   * @param {number} wordLength
+   * @param {number} wordErrors
+   * @returns {boolean}
+   */
+  function checkExtraLifeEligibility(wordLength, wordErrors) {
+    if (wordLength <= 6) {
+      return wordErrors === 0;
+    } else if (wordLength <= 8) {
+      return wordErrors <= 1;
+    } else if (wordLength <= 10) {
+      return wordErrors <= 2;
+    } else {
+      // 11 a 12 letras
+      return wordErrors <= 3;
+    }
+  }
 
   // ══════════════════════════════════════════════════════════════════════
   // ESTADO DE PARTIDA
@@ -75,8 +108,7 @@ const Game = (() => {
       answerProgress:  [],    // array paralelo a currentWord: char | null
       currentPosition: 0,     // índice de la siguiente letra a introducir
       wordErrors:      0,     // errores cometidos en esta palabra
-      wordPoints:      0,     // puntos por letras correctas acumulados
-      wordPenalty:     0,     // penalización acumulada sobre el premio de la palabra
+      wordPoints:      0,     // puntos acumulados en esta palabra
     };
   }
 
@@ -120,7 +152,7 @@ const Game = (() => {
   // ══════════════════════════════════════════════════════════════════════
 
   function _loadNewWord() {
-    const requiredLength = Words.getLevelLength ? Words.getLevelLength(_state.level) : (_state.level + 3);
+    const requiredLength = Words.getLevelLength ? Words.getLevelLength(_state.level) : Words.getLengthForLevel(_state.level);
     let word = Words.getWord(_state.level);
 
     if (!word || word.length !== requiredLength) {
@@ -135,7 +167,6 @@ const Game = (() => {
     _state.currentPosition  = 0;
     _state.wordErrors       = 0;
     _state.wordPoints       = 0;
-    _state.wordPenalty      = 0;  // penalización acumulada para esta palabra
 
     UI.renderGameBoard(_state);
   }
@@ -168,10 +199,10 @@ const Game = (() => {
     _state.answerProgress[pos] = letter;
     _state.currentPosition++;
 
-    // Puntuación por letra (se suma al total y a los puntos de la palabra)
+    // Puntuación por letra (+10 pts)
     const pts = CONFIG.POINTS_PER_LETTER;
-    _state.wordPoints  += pts;
-    _state.totalScore   = Math.max(CONFIG.MIN_SCORE, _state.totalScore + pts);
+    _state.wordPoints += pts;
+    _state.totalScore += pts;
 
     // Animaciones / UI
     Audio.playCorrect();
@@ -184,21 +215,16 @@ const Game = (() => {
   }
 
   function _handleWrongLetter(letter) {
-    // Restar vida
+    // Restar 1 vida
     _state.lives = Math.max(0, _state.lives - 1);
     _state.wordErrors++;
     _state.totalErrors++;
 
-    // La penalización se acumula sobre el PREMIO POTENCIAL de la palabra,
-    // NO se descuenta del totalScore acumulado previo.
-    // Nivel 5 (último) = -3 pts; resto de niveles = -4 pts.
-    const isLastLevel = _state.level >= CONFIG.TOTAL_LEVELS;
-    const penalty = isLastLevel ? CONFIG.PENALTY_LAST_LEVEL : CONFIG.PENALTY_NORMAL;
-    _state.wordPenalty += penalty;
+    // Los errores en letras incorrectas no quitan puntos
 
     // Animaciones / UI
     Audio.playWrong();
-    UI.onLetterWrong(letter, _state, penalty);
+    UI.onLetterWrong(letter, _state);
 
     // Comprobar Game Over
     if (_state.lives <= 0) {
@@ -212,39 +238,27 @@ const Game = (() => {
   // ══════════════════════════════════════════════════════════════════════
 
   function _handleWordComplete() {
-    // Premio base por completar la palabra
-    const wordBonus   = CONFIG.POINTS_PER_WORD;       // 100 pts fijos
-    const maxPrize    = wordBonus;                     // máximo aplicable a esta palabra
+    // Puntos base según la tabla del nivel actual
+    const baseWordPoints = getBasePointsForLevel(_state.level);
 
-    // Calcular penalización total acumulada (nunca baja el premio de MIN_WORD_PRIZE)
-    const totalPenalty = _state.wordPenalty;
-    const prizAfterPen = Math.max(CONFIG.MIN_WORD_PRIZE, maxPrize - totalPenalty);
+    // Sumar puntos base de la palabra al total
+    _state.totalScore += baseWordPoints;
+    _state.wordPoints += baseWordPoints;
 
-    // Bonus perfecto (sin errores en esta palabra)
-    let isPerfect  = _state.wordErrors === 0;
+    // Evaluar bonificación de vida extra
+    const isEligibleForLife = checkExtraLifeEligibility(_state.currentWord.length, _state.wordErrors);
     let lifeGained = 0;
-    let perfectBonus = 0;
 
-    if (isPerfect) {
-      perfectBonus = CONFIG.POINTS_PERFECT_BONUS;  // +50
-    }
-
-    // Premio final de la palabra
-    const finalWordPrize = prizAfterPen + (isPerfect ? perfectBonus : 0);
-
-    // Sumar al totalScore solo el premio por palabra (los pts por letra ya se sumaron al escribir)
-    _state.totalScore = Math.max(CONFIG.MIN_SCORE, _state.totalScore + finalWordPrize);
-    _state.wordPoints += finalWordPrize;
-
-    // Vida extra solo si perfecto
-    if (isPerfect) {
+    if (isEligibleForLife) {
       if (_state.lives < CONFIG.MAX_LIVES) {
-        _state.lives = Math.min(CONFIG.MAX_LIVES, _state.lives + CONFIG.LIFE_ON_PERFECT);
-        lifeGained = CONFIG.LIFE_ON_PERFECT;
+        _state.lives = Math.min(CONFIG.MAX_LIVES, _state.lives + CONFIG.LIFE_BONUS);
+        lifeGained = CONFIG.LIFE_BONUS;
       }
     }
 
-    // Racha (preparado para V2)
+    const isPerfect = _state.wordErrors === 0;
+
+    // Racha
     if (isPerfect) {
       _state.currentStreak++;
       if (_state.currentStreak > _state.maxStreak) {
@@ -258,14 +272,14 @@ const Game = (() => {
     _state.wordsInLevel++;
     _state.levelPointsEarned += _state.wordPoints;
 
-    // Datos para el desglose en UI
+    // Desglose para la pantalla de palabra correcta
     const breakdown = {
-      maxPrize,
-      totalPenalty,
-      prizAfterPen,
-      perfectBonus,
-      finalWordPrize,
+      baseWordPoints,
+      wordPoints: _state.wordPoints,
       isPerfect,
+      isEligibleForLife,
+      lifeGained,
+      wordErrors: _state.wordErrors,
     };
 
     Audio.playWordComplete();
@@ -284,7 +298,7 @@ const Game = (() => {
     Audio.playButton();
 
     if (_state.wordsInLevel >= CONFIG.WORDS_PER_LEVEL) {
-      // Nivel completado
+      // Nivel completado (5 palabras)
       _handleLevelComplete();
     } else {
       UI.showScreen('screen-game');
@@ -299,16 +313,11 @@ const Game = (() => {
 
   /**
    * Llamado cuando el jugador pulsa SIGUIENTE NIVEL.
+   * Progresión infinita de niveles (1 al 9, y continúa indefinidamente en 9+).
    */
   function startNextLevel() {
     if (!_state) return;
     Audio.playButton();
-
-    if (_state.level >= CONFIG.TOTAL_LEVELS) {
-      // ¡Juego completo! — tratarlo como victoria (Game Over con todos los niveles)
-      _triggerGameOver(true);
-      return;
-    }
 
     _state.level++;
     _state.wordsInLevel      = 0;
@@ -330,11 +339,12 @@ const Game = (() => {
     Audio.playGameOver();
     Audio.stopMusic();
 
-    // Guardar resultado
+    // Guardar resultado (incluyendo el nivel alcanzado)
     const result = {
       score:          _state.totalScore,
       wordsCompleted: _state.totalWords,
       errors:         _state.totalErrors,
+      level:          _state.level,
       streak:         _state.maxStreak,
     };
     Storage.recordGameResult(result);
@@ -395,6 +405,7 @@ const Game = (() => {
 
   function getState()  { return _state; }
   function getConfig() { return CONFIG; }
+  function getBasePoints(level) { return getBasePointsForLevel(level); }
 
   // ══════════════════════════════════════════════════════════════════════
   // TECLADO FÍSICO (PC)
@@ -425,6 +436,7 @@ const Game = (() => {
     pause,
     getState,
     getConfig,
+    getBasePoints,
     handleKeyboard,
   };
 

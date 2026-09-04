@@ -153,7 +153,7 @@ const UI = (() => {
   // NOMBRE DEL JUGADOR
   // ══════════════════════════════════════════════════════════════════════
 
-  function confirmPlayerName() {
+  async function confirmPlayerName() {
     Audio.playButton();
     const input = document.getElementById('player-name-input');
     const raw   = input ? input.value : '';
@@ -173,21 +173,46 @@ const UI = (() => {
 
     if (input) {
       input.classList.remove('input-error');
+      input.disabled = true;
     }
 
-    // Detectar contexto: ¿el jugador ya tenía nombre registrado?
-    const wasRegistered = Storage.hasPlayerName();
+    const btn = document.getElementById('btn-name-continue');
+    const prevBtnText = btn ? btn.textContent : '';
+    if (btn) btn.textContent = 'VALIDANDO...';
 
-    const name = Storage.setPlayerName(validation.sanitized);
+    try {
+      // Validación y registro de unicidad en Supabase
+      if (typeof SupabaseClient !== 'undefined' && SupabaseClient.validateAndRegisterPlayer) {
+        const res = await SupabaseClient.validateAndRegisterPlayer(validation.sanitized);
+        if (!res.success) {
+          if (input) {
+            input.classList.add('input-error');
+            input.disabled = false;
+            input.focus();
+          }
+          if (btn) btn.textContent = prevBtnText;
+          showToast(`❌ ${res.error || 'Nombre no disponible.'}`, 3500);
+          Audio.playWrong();
+          return;
+        }
+      }
 
-    if (wasRegistered) {
-      // Vino desde Ajustes → solo guardar y volver
-      showToast(`✅ Nombre actualizado: ${name}`);
-      goBack(); // volver a la pantalla anterior (Ajustes)
-    } else {
-      // Primer registro → lanzar el juego
-      showToast(`¡Hola, ${name}! 👋`);
-      Game.launchAfterName();
+      // Detectar contexto: ¿el jugador ya tenía nombre registrado?
+      const wasRegistered = Storage.hasPlayerName();
+      const name = Storage.setPlayerName(validation.sanitized);
+
+      if (wasRegistered) {
+        // Vino desde Ajustes → solo guardar y volver
+        showToast(`✅ Nombre actualizado: ${name}`);
+        goBack();
+      } else {
+        // Primer registro → lanzar el juego
+        showToast(`¡Hola, ${name}! 👋`);
+        Game.launchAfterName();
+      }
+    } finally {
+      if (input) input.disabled = false;
+      if (btn) btn.textContent = prevBtnText;
     }
   }
 
@@ -383,18 +408,16 @@ const UI = (() => {
    * Reacción visual a una letra incorrecta.
    * @param {string} letter
    * @param {object} state
-   * @param {number} penalty — penalización aplicada sobre el premio de la palabra
    */
-  function onLetterWrong(letter, state, penalty) {
-    const penaltyAmt = penalty || 4;
+  function onLetterWrong(letter, state) {
     // Flash rojo en el slot actual
     const slot = document.getElementById(`slot-${state.currentPosition}`);
     if (slot) Utils.flashClass(slot, 'error-flash', 500);
 
-    // Feedback textual con la penalización real
+    // Feedback textual: -1 vida (sin restar puntos)
     const fb = document.getElementById('game-feedback-text');
     if (fb) {
-      fb.textContent = `❌ -${penaltyAmt} pts al premio`;
+      fb.textContent = '❌ -1 VIDA';
       fb.className   = 'feedback-text show-error';
       setTimeout(() => { fb.className = 'feedback-text'; }, 1200);
     }
@@ -403,10 +426,10 @@ const UI = (() => {
     const keyEl = document.querySelector(`.key[data-key="${letter}"]`);
     if (keyEl) Utils.flashClass(keyEl, 'key-error-flash', 400);
 
-    // Puntos flotantes negativos (penalización sobre el premio)
-    _showFloatingPoints(`-${penaltyAmt}`, slot, 'negative');
+    // Puntos flotantes: vida perdida
+    _showFloatingPoints('-1 ❤️', slot, 'negative');
 
-    // Actualizar HUD de puntos y vidas (totalScore no cambia en el fallo, solo el premio potencial)
+    // Actualizar HUD
     const pointsEl = document.getElementById('hud-points');
     if (pointsEl) pointsEl.textContent = Utils.formatScore(state.totalScore);
 
@@ -456,29 +479,25 @@ const UI = (() => {
       });
     }
 
-    // Puntos con desglose
+    // Puntos
     const pointsEl = document.getElementById('wc-points');
     if (pointsEl) {
-      if (breakdown && !isPerfect && breakdown.totalPenalty > 0) {
-        // Formato: "Premio base: 100" + "[X] errores: -[Y]" + total
-        pointsEl.innerHTML =
-          `<span style="font-size:0.75em;color:var(--color-text-dim);display:block;line-height:1.6;">` +
-          `Premio base: ${breakdown.maxPrize}</span>` +
-          `<span style="font-size:0.75em;color:var(--color-red);display:block;line-height:1.6;">` +
-          `${state.wordErrors} error${state.wordErrors !== 1 ? 'es' : ''}: -${breakdown.totalPenalty}</span>` +
-          `+${Utils.formatScore(breakdown.prizAfterPen)} PUNTOS`;
-      } else if (breakdown && isPerfect) {
-        // Sin fallos: mostrar el total limpio
-        pointsEl.textContent = `+${Utils.formatScore(breakdown.finalWordPrize)} PUNTOS`;
-      } else {
-        pointsEl.textContent = `+${Utils.formatScore(wordPoints)} PUNTOS`;
-      }
+      const pts = breakdown && breakdown.baseWordPoints ? breakdown.baseWordPoints : wordPoints;
+      pointsEl.textContent = `+${Utils.formatScore(pts)} PUNTOS`;
     }
 
     // Bonus de vida
     const lifeEl = document.getElementById('wc-life-bonus');
     if (lifeEl) {
-      lifeEl.style.display = lifeGained > 0 ? 'flex' : 'none';
+      if (lifeGained > 0) {
+        lifeEl.textContent = '❤️ +1 VIDA';
+        lifeEl.style.display = 'flex';
+      } else if (breakdown && breakdown.isEligibleForLife && state.lives >= Game.getConfig().MAX_LIVES) {
+        lifeEl.textContent = '❤️ VIDAS AL MÁXIMO (15)';
+        lifeEl.style.display = 'flex';
+      } else {
+        lifeEl.style.display = 'none';
+      }
     }
 
     showScreen('screen-word-complete');
@@ -515,10 +534,8 @@ const UI = (() => {
       }
     }
 
-    // Si es el último nivel, cambiar el botón
     const btn = document.getElementById('btn-next-level');
-    const isLast = state.level >= cfg.TOTAL_LEVELS;
-    if (btn) btn.textContent = isLast ? '🏆 ¡JUEGO COMPLETO!' : 'SIGUIENTE NIVEL ➡️';
+    if (btn) btn.textContent = 'SIGUIENTE NIVEL ➡️';
 
     showScreen('screen-level-complete');
     _spawnParticles('particle-container-lc');
@@ -564,7 +581,6 @@ const UI = (() => {
       recEl.classList.toggle('hidden', !isNewRecord);
     }
 
-    // Si es victoria, cambiar título
     const skull = document.querySelector('.game-over-skull');
     const goTitle = document.querySelector('.game-over-title');
     if (isVictory) {
@@ -582,59 +598,78 @@ const UI = (() => {
   }
 
   // ══════════════════════════════════════════════════════════════════════
-  // PANTALLA: RÉCORDS
+  // PANTALLA: RÉCORDS (Conexión Supabase para TOP 10 Global)
   // ══════════════════════════════════════════════════════════════════════
 
-  function renderRecords(tab) {
+  async function renderRecords(tab) {
     const list = document.getElementById('records-list');
     if (!list) return;
     Utils.clearElement(list);
 
-    const allRecords  = Storage.getRecords();
-    const playerName  = Storage.getPlayerName();
+    const playerName = Storage.getPlayerName();
 
-    // Seleccionar datos según la pestaña activa
-    let records;
     if (tab === 'personal') {
-      records = Storage.getPersonalRecords(playerName);
-    } else {
-      // top10: todos los registros del dispositivo (ya vienen ordenados de mayor a menor)
-      records = allRecords;
-    }
-
-    if (records.length === 0) {
-      const msg = tab === 'personal'
-        ? '¡Aún no tienes puntuaciones. ¡Juega tu primera partida! 🎮'
-        : '¡Aún no hay récords! Sé el primero. 🎮';
-      const empty = Utils.createElement('p', '', msg);
-      empty.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-xl) 0;font-size:var(--fs-sm);';
-      list.appendChild(empty);
+      const records = Storage.getPersonalRecords(playerName);
+      if (records.length === 0) {
+        const empty = Utils.createElement('p', '', '¡Aún no tienes puntuaciones. ¡Juega tu primera partida! 🎮');
+        empty.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-xl) 0;font-size:var(--fs-sm);';
+        list.appendChild(empty);
+        return;
+      }
+      _renderRecordsList(records, list, playerName);
       return;
     }
 
+    // Pestaña TOP 10 (Ranking Global Supabase)
+    const loadingEl = Utils.createElement('p', '', 'Cargando ranking global... 🌐');
+    loadingEl.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-lg) 0;font-size:var(--fs-sm);';
+    list.appendChild(loadingEl);
+
+    let globalRecords = null;
+    if (typeof SupabaseClient !== 'undefined' && SupabaseClient.fetchTop10Leaderboard) {
+      const res = await SupabaseClient.fetchTop10Leaderboard(10);
+      if (res.success && res.data && res.data.length > 0) {
+        globalRecords = res.data;
+      }
+    }
+
+    Utils.clearElement(list);
+
+    if (globalRecords && globalRecords.length > 0) {
+      _renderRecordsList(globalRecords, list, playerName);
+    } else {
+      // Fallback a récords locales si Supabase está offline
+      const localRecords = Storage.getRecords().slice(0, 10);
+      if (localRecords.length === 0) {
+        const empty = Utils.createElement('p', '', '¡Aún no hay récords! Sé el primero. 🎮');
+        empty.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-xl) 0;font-size:var(--fs-sm);';
+        list.appendChild(empty);
+      } else {
+        _renderRecordsList(localRecords, list, playerName);
+      }
+    }
+  }
+
+  function _renderRecordsList(records, container, currentPlayerName) {
     records.forEach((rec, i) => {
       const item = Utils.createElement('div', 'record-item');
       const rank = i + 1;
 
       // Columna izquierda: posición + nombre del jugador
       const leftCol = Utils.createElement('div', 'record-left');
-
-      // Badge de posición
       const badge = Utils.createElement('div', `record-rank ${_rankClass(rank)}`, String(rank));
       leftCol.appendChild(badge);
 
-      // Nombre del jugador (sin fecha)
       const name = Utils.createElement('span', 'record-name', rec.name || 'Jugador');
       leftCol.appendChild(name);
 
-      // Si es el jugador actual, añadir tag sutil "TÚ" y clase highlight
-      if (rec.name === playerName) {
+      if (rec.name === currentPlayerName) {
         const youTag = Utils.createElement('span', 'record-you-tag', 'TÚ');
         leftCol.appendChild(youTag);
         item.classList.add('highlight');
       }
 
-      // Columna derecha: puntuación numérica alineada a la derecha
+      // Columna derecha: puntuación numérica
       const rightCol = Utils.createElement('div', 'record-right');
       const score = Utils.createElement('span', 'record-score', Utils.formatScore(rec.score));
       const ptsLabel = Utils.createElement('span', 'record-pts-label', 'PTS');
@@ -644,7 +679,7 @@ const UI = (() => {
       item.appendChild(leftCol);
       item.appendChild(rightCol);
 
-      list.appendChild(item);
+      container.appendChild(item);
     });
   }
 

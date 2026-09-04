@@ -406,15 +406,20 @@
       </div>
       <div class="help-item">
         <h3 style="color:var(--color-blue); font-size:var(--fs-md); font-weight:800; margin-bottom:4px;">📈 NIVELES PROGRESIVOS</h3>
-        <p style="font-size:var(--fs-sm); color:var(--color-text-dim); line-height:1.4;">Comienzas en el <strong>Nivel 1</strong> (4 letras). Cada nivel superado añade una letra.</p>
+        <p style="font-size:var(--fs-sm); color:var(--color-text-dim); line-height:1.4;">Comienzas en el <strong>Nivel 1</strong> (4 letras). Cada nivel añade una letra hasta <strong>12 letras (Nivel 9+)</strong>, continuando de forma indefinida.</p>
       </div>
       <div class="help-item">
         <h3 style="color:var(--color-green); font-size:var(--fs-md); font-weight:800; margin-bottom:4px;">⭐ PUNTUACIÓN & VIDAS</h3>
         <p style="font-size:var(--fs-sm); color:var(--color-text-dim); line-height:1.4;">
-          • <strong>+10 pts</strong> por letra acertada.<br>
-          • <strong>+100 pts</strong> por completar palabra.<br>
-          • <strong>+50 pts y +1 VIDA</strong> si completas la palabra sin errores.<br>
-          • <strong>-5 pts y -1 VIDA</strong> por cada letra incorrecta.
+          • Inicias con <strong>15 vidas</strong> (máx. 15).<br>
+          • <strong>+10 pts</strong> por cada letra correcta.<br>
+          • Puntos base por palabra según nivel: <strong>100 a 500 pts</strong>.<br>
+          • Cada letra incorrecta consume <strong>1 vida</strong> (no resta puntos).<br>
+          • <strong>Vidas extras (+1 ❤️):</strong><br>
+            - 4 a 6 letras: 0 errores requeridos.<br>
+            - 7 a 8 letras: hasta 1 error.<br>
+            - 9 a 10 letras: hasta 2 errores.<br>
+            - 11 a 12 letras: hasta 3 errores.
         </p>
       </div>
     </div>
@@ -424,14 +429,18 @@
 
 <div class="toast-container" id="toast-container"></div>
 
-<!-- Scripts con rutas relativas correctas para el entorno móvil -->
-<script src="js/utils.js?v=4"></script>
-<script src="js/storage.js?v=4"></script>
-<script src="js/audio.js?v=4"></script>
-<script src="js/words.js?v=4"></script>
-<script src="js/game.js?v=4"></script>
-<script src="js/ui.js?v=4"></script>
-<script src="js/main.js?v=4"></script>
+<!-- Supabase JS Client v2 desde CDN oficial -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Scripts de OrdenaLetras -->
+<script src="js/utils.js?v=5"></script>
+<script src="js/storage.js?v=5"></script>
+<script src="js/supabaseClient.js?v=5"></script>
+<script src="js/audio.js?v=5"></script>
+<script src="js/words.js?v=5"></script>
+<script src="js/game.js?v=5"></script>
+<script src="js/ui.js?v=5"></script>
+<script src="js/main.js?v=5"></script>
 
 </body>
 </html>

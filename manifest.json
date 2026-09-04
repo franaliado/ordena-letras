@@ -10,18 +10,21 @@
   "lang": "es",
   "icons": [
     {
-      "src": "OrdenaLetras_icono_oficial.jpg",
+      "src": "OrdenaLetras_icono_oficial.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "OrdenaLetras_icono_oficial.jpg",
+      "src": "OrdenaLetras_icono_oficial.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["games", "education"],
+  "categories": [
+    "games",
+    "education"
+  ],
   "prefer_related_applications": false
 }
