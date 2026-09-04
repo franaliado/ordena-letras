@@ -115,7 +115,7 @@
     }
   });
 
-  // ── 9. Input de nombre: Enter para confirmar y transformación a mayúsculas ──
+  // ── 9. Input de nombre: Enter para confirmar, mayúsculas y sonido de tecleo ──
   const nameInput = document.getElementById('player-name-input');
   if (nameInput) {
     nameInput.addEventListener('input', function() {
@@ -125,6 +125,8 @@
       if (start !== null && end !== null) {
         this.setSelectionRange(start, end);
       }
+      // Reproducir sonido de tecleo
+      Audio.playButton();
     });
 
     nameInput.addEventListener('keydown', function(e) {
