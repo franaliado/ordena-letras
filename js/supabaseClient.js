@@ -15,8 +15,8 @@ const SupabaseClient = (() => {
   // Publishable Key oficial suministrada
   const SUPABASE_KEY = 'sb_publishable_EJL4T7mPbrZFHOmFwf1_Yg_tAQjNuum';
   
-  // URL del proyecto Supabase (configurable mediante window.SUPABASE_URL o predeterminada)
-  const SUPABASE_URL = window.SUPABASE_URL || 'https://sdtpylmrvhvxzrtlyqxm.supabase.co';
+  // URL del proyecto Supabase corregida con el ID real del panel
+  const SUPABASE_URL = window.SUPABASE_URL || 'https://laqnxljqiburhugbsqoa.supabase.co';
 
   let _client = null;
   let _initialized = false;
@@ -44,13 +44,6 @@ const SupabaseClient = (() => {
 
   /**
    * Valida la disponibilidad de un nombre de jugador y lo registra si es nuevo.
-   * Reglas:
-   *  - Si el nombre no existe: lo inserta en `players` y retorna su `player_id`.
-   *  - Si el nombre ya existe y coincide con el `player_id` local: es el mismo jugador.
-   *  - Si el nombre ya existe y NO coincide con el `player_id` local: se rechaza por duplicado.
-   *
-   * @param {string} playerName - Nombre en mayúsculas
-   * @returns {Promise<{success: boolean, playerId?: string, isNew?: boolean, error?: string}>}
    */
   async function validateAndRegisterPlayer(playerName) {
     const cleanName = String(playerName || '').trim().toUpperCase();
@@ -60,12 +53,10 @@ const SupabaseClient = (() => {
 
     const client = getClient();
     if (!client) {
-      // Modo offline / sin conexión: permitir jugar localmente
       return { success: true, playerId: null, offline: true };
     }
 
     try {
-      // 1. Consultar si el nombre ya existe en la tabla `players`
       const { data: existingPlayer, error: searchError } = await client
         .from('players')
         .select('id, player_name')
@@ -80,12 +71,9 @@ const SupabaseClient = (() => {
       const storedPlayerId = Storage.getPlayerId();
 
       if (existingPlayer) {
-        // El nombre existe en la base de datos
         if (storedPlayerId && storedPlayerId === existingPlayer.id) {
-          // Es el mismo jugador en este dispositivo
           return { success: true, playerId: existingPlayer.id, isNew: false };
         } else {
-          // El nombre pertenece a otro usuario a nivel global
           return {
             success: false,
             error: 'Este nombre ya está en uso por otro jugador. Por favor, elige otro.'
@@ -93,7 +81,6 @@ const SupabaseClient = (() => {
         }
       }
 
-      // 2. El nombre no existe: insertarlo para obtener su nuevo UUID único
       const { data: newPlayer, error: insertError } = await client
         .from('players')
         .insert([{ player_name: cleanName }])
@@ -101,7 +88,6 @@ const SupabaseClient = (() => {
         .single();
 
       if (insertError) {
-        // En caso de conflicto de clave única simultáneo
         if (insertError.code === '23505') {
           return {
             success: false,
@@ -112,7 +98,6 @@ const SupabaseClient = (() => {
         return { success: true, playerId: storedPlayerId, offline: true };
       }
 
-      // Guardar el nuevo player_id localmente
       if (newPlayer && newPlayer.id) {
         Storage.setPlayerId(newPlayer.id);
         return { success: true, playerId: newPlayer.id, isNew: true };
@@ -127,9 +112,6 @@ const SupabaseClient = (() => {
 
   /**
    * Guarda una puntuación en la tabla `leaderboard` vinculada al `player_id`.
-   * @param {number} score - Puntuación total obtenida
-   * @param {number} maxLevel - Nivel alcanzado
-   * @returns {Promise<{success: boolean, error?: string}>}
    */
   async function saveScore(score, maxLevel = 1) {
     if (typeof score !== 'number' || score <= 0) {
@@ -145,7 +127,6 @@ const SupabaseClient = (() => {
       let playerId = Storage.getPlayerId();
       const playerName = Storage.getPlayerName();
 
-      // Si no tenemos playerId pero tenemos un nombre válido, intentamos obtenerlo/registrarlo
       if (!playerId && playerName && playerName !== 'Jugador') {
         const reg = await validateAndRegisterPlayer(playerName);
         if (reg.success && reg.playerId) {
@@ -183,9 +164,6 @@ const SupabaseClient = (() => {
 
   /**
    * Consulta el Top 10 global mediante JOIN entre `leaderboard` y `players`.
-   * Ordenado por puntuación descendente.
-   * @param {number} limit - Cantidad máxima de registros (por defecto 10)
-   * @returns {Promise<{success: boolean, data?: Array<{name: string, score: number, maxLevel: number}>, error?: string}>}
    */
   async function fetchTop10Leaderboard(limit = 10) {
     const client = getClient();
