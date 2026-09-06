@@ -610,13 +610,14 @@ const UI = (() => {
 
     if (tab === 'personal') {
       const records = Storage.getPersonalRecords(playerName);
-      if (records.length === 0) {
+      const uniqueRecords = _deduplicateRecords(records);
+      if (uniqueRecords.length === 0) {
         const empty = Utils.createElement('p', '', '¡Aún no tienes puntuaciones. ¡Juega tu primera partida! 🎮');
         empty.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-xl) 0;font-size:var(--fs-sm);';
         list.appendChild(empty);
         return;
       }
-      _renderRecordsList(records, list, playerName);
+      _renderRecordsList(uniqueRecords, list, playerName);
       return;
     }
 
@@ -627,9 +628,9 @@ const UI = (() => {
 
     let globalRecords = null;
     if (typeof SupabaseClient !== 'undefined' && SupabaseClient.fetchTop10Leaderboard) {
-      const res = await SupabaseClient.fetchTop10Leaderboard(10);
+      const res = await SupabaseClient.fetchTop10Leaderboard(50);
       if (res.success && res.data && res.data.length > 0) {
-        globalRecords = res.data;
+        globalRecords = _deduplicateRecords(res.data).slice(0, 10);
       }
     }
 
@@ -639,7 +640,7 @@ const UI = (() => {
       _renderRecordsList(globalRecords, list, playerName);
     } else {
       // Fallback a récords locales si Supabase está offline
-      const localRecords = Storage.getRecords().slice(0, 10);
+      const localRecords = _deduplicateRecords(Storage.getRecords()).slice(0, 10);
       if (localRecords.length === 0) {
         const empty = Utils.createElement('p', '', '¡Aún no hay récords! Sé el primero. 🎮');
         empty.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-xl) 0;font-size:var(--fs-sm);';
@@ -650,8 +651,28 @@ const UI = (() => {
     }
   }
 
+  /**
+   * Filtra registros para no mostrar puntuaciones duplicadas del mismo jugador.
+   * Si un usuario obtiene exactamente la misma cantidad de puntos varias veces,
+   * solo se muestra una vez por esa puntuación única.
+   * Solo se permiten entradas múltiples si la puntuación es diferente.
+   */
+  function _deduplicateRecords(records) {
+    if (!Array.isArray(records)) return [];
+    const seen = new Set();
+    return records.filter(rec => {
+      const nameKey = (rec.name || 'Jugador').trim().toLowerCase();
+      const scoreKey = rec.score;
+      const key = `${nameKey}|${scoreKey}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   function _renderRecordsList(records, container, currentPlayerName) {
-    records.forEach((rec, i) => {
+    const uniqueRecords = _deduplicateRecords(records);
+    uniqueRecords.forEach((rec, i) => {
       const item = Utils.createElement('div', 'record-item');
       const rank = i + 1;
 

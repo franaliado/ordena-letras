@@ -172,6 +172,7 @@ const SupabaseClient = (() => {
     }
 
     try {
+      const queryLimit = Math.max(limit * 3, 50);
       const { data, error } = await client
         .from('leaderboard')
         .select(`
@@ -185,7 +186,7 @@ const SupabaseClient = (() => {
           )
         `)
         .order('score', { ascending: false })
-        .limit(limit);
+        .limit(queryLimit);
 
       if (error) {
         console.warn('[Supabase] Error al obtener ranking:', error);
@@ -202,7 +203,16 @@ const SupabaseClient = (() => {
         };
       });
 
-      return { success: true, data: formatted };
+      // Deduplicar: si un mismo jugador obtiene la misma puntuación varias veces, mostrarla solo una vez
+      const seen = new Set();
+      const deduplicated = formatted.filter(rec => {
+        const key = `${(rec.name || 'JUGADOR').trim().toLowerCase()}|${rec.score}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      return { success: true, data: deduplicated.slice(0, limit) };
     } catch (err) {
       console.warn('[Supabase] Excepción al obtener ranking:', err);
       return { success: false, error: err.message };
