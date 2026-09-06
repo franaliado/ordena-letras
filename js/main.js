@@ -60,12 +60,18 @@
   UI.initHistory();
   UI.showScreen('screen-menu', false);
 
-  // ── 7. Conectar teclado virtual (botones .key) ────────────────────────────
-  document.getElementById('game-keyboard').addEventListener('click', function(e) {
+  // ── 7. Conectar teclado virtual (botones .key) ────────────────────────────────────
+  // Usamos 'pointerdown' en vez de 'click' para eliminar el delay de 300ms
+  // en Android WebView / Capacitor. El evento se dispara inmediatamente.
+  const gameKeyboard = document.getElementById('game-keyboard');
+  gameKeyboard.addEventListener('pointerdown', function(e) {
     const btn = e.target.closest('.key');
     if (!btn) return;
     const key = btn.dataset.key;
     if (!key) return;
+
+    // Capturar el puntero para evitar que el scroll intervenga
+    e.preventDefault();
 
     Audio.playButton();
 
@@ -76,7 +82,7 @@
     }
 
     Game.pressLetter(key);
-  });
+  }, { passive: false });
 
   // ── 8. Teclado físico (para pruebas en PC) ────────────────────────────────
   document.addEventListener('keydown', function(e) {

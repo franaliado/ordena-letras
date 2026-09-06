@@ -763,13 +763,36 @@ const UI = (() => {
   function renderSettings() {
     const settings = Storage.getSettings();
 
-    const tSound = document.getElementById('toggle-sounds');
-    const tMusic = document.getElementById('toggle-music');
-    const nameEl = document.getElementById('settings-name-display');
+    const tSound  = document.getElementById('toggle-sounds');
+    const tMusic  = document.getElementById('toggle-music');
+    const nameEl  = document.getElementById('settings-name-display');
+    const btnName = document.getElementById('btn-change-name');
 
     if (tSound) tSound.checked = settings.soundsEnabled;
     if (tMusic) tMusic.checked = settings.musicEnabled;
-    if (nameEl) nameEl.textContent = Storage.getPlayerName();
+
+    const hasName = Storage.hasPlayerName();
+    const playerName = Storage.getPlayerName();
+
+    if (nameEl) {
+      if (hasName) {
+        nameEl.textContent = playerName;
+        nameEl.style.color = 'var(--color-white)';
+        nameEl.style.fontStyle = 'normal';
+      } else {
+        nameEl.textContent = 'Sin registrar';
+        nameEl.style.color = 'var(--color-text-dim)';
+        nameEl.style.fontStyle = 'italic';
+      }
+    }
+
+    if (btnName) {
+      if (hasName) {
+        btnName.textContent = '✏️ CAMBIAR NOMBRE';
+      } else {
+        btnName.textContent = '➕ AGREGAR NOMBRE';
+      }
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -805,28 +828,43 @@ const UI = (() => {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Limpia partículas anteriores
+    // Elimina partículas anteriores en un solo paso (sin iterar .remove() una a una)
     container.querySelectorAll('.particle').forEach(p => p.remove());
 
+    // Usar DocumentFragment para una sola inserción en el DOM
+    const frag = document.createDocumentFragment();
     const count = 30;
+
     for (let i = 0; i < count; i++) {
       const p = document.createElement('div');
       p.className = 'particle';
-      p.style.cssText = `
-        left: ${Math.random() * 100}%;
-        top: ${-10 + Math.random() * 30}%;
-        background: ${COLORS[Math.floor(Math.random() * COLORS.length)]};
-        width: ${4 + Math.random() * 8}px;
-        height: ${4 + Math.random() * 8}px;
-        animation-delay: ${Math.random() * 0.8}s;
-        animation-duration: ${1 + Math.random() * 1.5}s;
-        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
-      `;
-      container.appendChild(p);
 
-      // Limpiar después
-      p.addEventListener('animationend', () => p.remove());
+      const xPct  = Math.random() * 100;           // % horizontal
+      const delay = Math.random() * 0.8;
+      const dur   = 1 + Math.random() * 1.5;
+      const size  = 4 + Math.random() * 8;
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      const isCircle = Math.random() > 0.5;
+
+      // Usamos translate3d para posicionar horizontalmente: no mueve left/top
+      // (propiedades que disparan layout), solo transform (compositor GPU).
+      p.style.cssText = [
+        `background:${color}`,
+        `width:${size}px`,
+        `height:${size}px`,
+        `border-radius:${isCircle ? '50%' : '2px'}`,
+        `animation-delay:${delay}s`,
+        `animation-duration:${dur}s`,
+        // Offset horizontal: translate3d en X desde el centro del contenedor
+        `transform:translate3d(calc(${xPct}vw - 50%), -10px, 0)`,
+      ].join(';');
+
+      // Limpieza automática al terminar la animación
+      p.addEventListener('animationend', () => p.remove(), { once: true });
+      frag.appendChild(p);
     }
+
+    container.appendChild(frag);
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -838,6 +876,7 @@ const UI = (() => {
     fp.className = `floating-points ${type}`;
     fp.textContent = text;
 
+    // Calcular posición de referencia
     let x = window.innerWidth / 2;
     let y = window.innerHeight / 2;
 
@@ -847,12 +886,15 @@ const UI = (() => {
       y = rect.top;
     }
 
+    // Posicionar con left/top fuera del flujo (position:fixed ya lo está).
+    // El translateX(-50%) ahora lo gestiona el keyframe CSS (floatUp),
+    // por lo que aquí solo necesitamos fijar la coordenada de origen.
     fp.style.left = `${x}px`;
     fp.style.top  = `${y}px`;
-    fp.style.transform = 'translateX(-50%)';
+    // Nota: NO asignamos transform aquí; el keyframe CSS ya incluye translate3d(-50%,...)
 
     document.body.appendChild(fp);
-    fp.addEventListener('animationend', () => fp.remove());
+    fp.addEventListener('animationend', () => fp.remove(), { once: true });
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -862,11 +904,16 @@ const UI = (() => {
   function showToast(msg, durationMs = 2000) {
     const container = document.getElementById('toast-container');
     if (!container) return;
+
+    // Limitar a máximo 3 toasts simultáneos para no saturar el DOM
+    const existing = container.querySelectorAll('.toast');
+    if (existing.length >= 3) existing[0].remove();
+
     const toast = Utils.createElement('div', 'toast', msg);
     container.appendChild(toast);
     setTimeout(() => {
       toast.classList.add('fade-out');
-      toast.addEventListener('animationend', () => toast.remove());
+      toast.addEventListener('animationend', () => toast.remove(), { once: true });
     }, durationMs);
   }
 

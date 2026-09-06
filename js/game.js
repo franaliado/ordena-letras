@@ -122,9 +122,8 @@ const Game = (() => {
   function startGame() {
     Audio.playButton();
 
-    // Verificar si el jugador tiene nombre
-    const name = Storage.getPlayerName();
-    if (!name || name === 'Jugador') {
+    // Verificar si el jugador tiene nombre registrado
+    if (!Storage.hasPlayerName()) {
       UI.showScreen('screen-player-name');
       return;
     }

@@ -154,11 +154,34 @@ const Utils = (() => {
   /**
    * Añade una clase por un tiempo determinado y la quita.
    * Útil para animaciones one-shot.
+   * Cancela el timer anterior del mismo elemento+clase para evitar
+   * acumulación de callbacks cuando el usuario pulsa muy rápido.
    */
+  const _flashTimers = new WeakMap();
+
   function flashClass(el, className, durationMs = 500) {
     if (!el) return;
+
+    // Cancelar timer previo para este elemento y clase
+    const key = className;
+    let timers = _flashTimers.get(el);
+    if (timers && timers[key]) {
+      clearTimeout(timers[key]);
+    }
+
     el.classList.add(className);
-    setTimeout(() => el.classList.remove(className), durationMs);
+
+    const id = setTimeout(() => {
+      el.classList.remove(className);
+      const t = _flashTimers.get(el);
+      if (t) delete t[key];
+    }, durationMs);
+
+    if (!timers) {
+      timers = {};
+      _flashTimers.set(el, timers);
+    }
+    timers[key] = id;
   }
 
   /**

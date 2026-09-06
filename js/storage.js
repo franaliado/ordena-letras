@@ -98,15 +98,18 @@ const Storage = (() => {
   }
 
   /**
-   * Devuelve true si el jugador ya registró su nombre al menos una vez.
+   * Devuelve true si el jugador ya registró su nombre propio válido.
    * Permite distinguir primer registro vs. cambio de nombre desde ajustes.
    */
   function hasPlayerName() {
-    return _read(KEYS.NAME_SET) === true;
+    const raw = _read(KEYS.PLAYER_NAME);
+    const isSet = _read(KEYS.NAME_SET) === true;
+    return isSet && typeof raw === 'string' && raw.trim().length >= 3 && raw.trim().toUpperCase() !== 'JUGADOR';
   }
 
   function setPlayerName(name) {
-    const clean = String(name || '').trim().toUpperCase().slice(0, 10) || 'Jugador';
+    const validation = Utils.validatePlayerName(name);
+    const clean = validation.valid ? validation.sanitized : (String(name || '').trim().toUpperCase().slice(0, 10) || 'Jugador');
     _write(KEYS.PLAYER_NAME, clean);
     _write(KEYS.NAME_SET, true);   // marcar que el jugador ya eligió nombre
     return clean;
@@ -263,13 +266,16 @@ const Storage = (() => {
   // ── API: Reset total ───────────────────────────────────────────────────────
 
   function resetAll() {
-    const name = getPlayerName(); // conserva el nombre
+    const hadName = hasPlayerName();
+    const name = hadName ? getPlayerName() : null;
     try {
       Object.values(KEYS).forEach(k => localStorage.removeItem(k));
     } catch (_) {}
     _settings = null;
     _stats = null;
-    setPlayerName(name); // restaura nombre (y mantiene NAME_SET=true)
+    if (hadName && name) {
+      setPlayerName(name); // restaura nombre si ya existía
+    }
   }
 
   // ── Puente App Inventor: listener de WebViewString ─────────────────────────

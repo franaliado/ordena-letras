@@ -98,7 +98,11 @@ body {
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
+  /* Elimina el delay de 300ms en todos los toques del documento */
   touch-action: manipulation;
+  /* Fuerza contexto de composición en la raíz */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 #app {
@@ -133,8 +137,12 @@ body {
   overflow-x: hidden;
   opacity: 0;
   pointer-events: none;
+  /* GPU: usa translate3d para activar composición en capa propia */
   transition: opacity var(--t-slow), transform var(--t-slow);
-  transform: translateX(30px);
+  transform: translate3d(30px, 0, 0);
+  will-change: transform, opacity;
+  /* Limita los recálculos de layout al contenedor */
+  contain: layout style;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -143,7 +151,7 @@ body {
 .screen.active {
   opacity: 1;
   pointer-events: all;
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -166,10 +174,15 @@ body {
   letter-spacing: 0.05em;
   cursor: pointer;
   text-transform: uppercase;
+  /* GPU: promueve botones a capa propia para transiciones suaves */
   transition: transform var(--t-fast), box-shadow var(--t-fast), filter var(--t-fast);
+  will-change: transform;
+  transform: translateZ(0);
   position: relative;
   overflow: hidden;
   user-select: none;
+  /* Elimina delay de 300ms en Android */
+  touch-action: manipulation;
 }
 
 .btn::after {
@@ -185,7 +198,7 @@ body {
 }
 
 .btn:active {
-  transform: translateY(4px);
+  transform: translate3d(0, 4px, 0);
 }
 
 /* Botón JUGAR (Dorado / Amarillo vibrante 3D) */
@@ -681,6 +694,10 @@ body {
   color: white;
   box-shadow: 0 4px 0 #080D1A, 0 6px 14px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.15);
   transition: transform var(--t-fast), box-shadow var(--t-fast), border-color var(--t-fast);
+  /* GPU: promover iconos circulares a capa propia */
+  will-change: transform;
+  transform: translateZ(0);
+  touch-action: manipulation;
 }
 
 .menu-icon-circle:hover {
@@ -689,7 +706,7 @@ body {
 }
 
 .menu-icon-circle:active {
-  transform: translateY(3px);
+  transform: translate3d(0, 3px, 0);
   box-shadow: 0 1px 0 #080D1A, 0 2px 6px rgba(0,0,0,0.3);
 }
 
@@ -974,13 +991,16 @@ body {
   font-weight: 900;
   color: var(--color-white);
   box-shadow: 0 3px 0 rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.2);
+  /* GPU: cada ficha en su propia capa de composición */
   transition: transform var(--t-fast), opacity var(--t-normal);
+  will-change: transform, opacity;
+  transform: translateZ(0);
   flex-shrink: 0;
 }
 
 .letter-tile.used {
   opacity: 0.3;
-  transform: scale(0.9);
+  transform: scale3d(0.9, 0.9, 1);
 }
 
 /* Slots de respuesta */
@@ -1004,7 +1024,10 @@ body {
   font-size: clamp(1rem, 3vw, 1.25rem);
   font-weight: 900;
   color: var(--color-white);
-  transition: all var(--t-fast);
+  /* GPU: animar slots en la capa de composición */
+  transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+  will-change: transform;
+  transform: translateZ(0);
   position: relative;
   flex-shrink: 0;
 }
@@ -1028,9 +1051,9 @@ body {
 }
 
 @keyframes slotFill {
-  0%   { transform: scale(0.7); }
-  60%  { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  0%   { transform: scale3d(0.7, 0.7, 1); }
+  60%  { transform: scale3d(1.15, 1.15, 1); }
+  100% { transform: scale3d(1, 1, 1); }
 }
 
 .answer-slot.error-flash {
@@ -1115,7 +1138,10 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 3px 0 rgba(0,0,0,0.4);
+  /* GPU: teclas en capa propia — respuesta visual inmediata */
   transition: transform var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+  will-change: transform;
+  transform: translateZ(0);
   position: relative;
   overflow: hidden;
   touch-action: manipulation;
@@ -1123,7 +1149,7 @@ body {
 }
 
 .key:active, .key.pressed {
-  transform: translateY(2px);
+  transform: translate3d(0, 2px, 0);
   box-shadow: 0 1px 0 rgba(0,0,0,0.4);
   background: linear-gradient(180deg, #1E40AF 0%, #1E3A8A 100%);
 }
@@ -1134,9 +1160,9 @@ body {
   animation: keyCorrect 0.3s ease;
 }
 @keyframes keyCorrect {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(0.9) translateY(2px); }
-  100% { transform: scale(1); }
+  0%   { transform: scale3d(1, 1, 1); }
+  50%  { transform: scale3d(0.9, 0.9, 1) translate3d(0, 2px, 0); }
+  100% { transform: scale3d(1, 1, 1); }
 }
 
 .key.key-error-flash {
@@ -1145,9 +1171,9 @@ body {
   animation: keyError 0.3s ease;
 }
 @keyframes keyError {
-  0%,100% { transform: translateX(0); }
-  25%     { transform: translateX(-3px); }
-  75%     { transform: translateX(3px); }
+  0%,100% { transform: translate3d(0, 0, 0); }
+  25%     { transform: translate3d(-3px, 0, 0); }
+  75%     { transform: translate3d(3px, 0, 0); }
 }
 
 /* .key-delete ya no se usa — botón de borrar eliminado del teclado */
@@ -1839,12 +1865,15 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 2px;
+  /* GPU: partículas en capa propia — sin mover left/top, solo transform */
+  will-change: transform, opacity;
+  transform: translateZ(0);
   animation: particleFall 1.5s ease forwards;
 }
 
 @keyframes particleFall {
-  0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  0%   { transform: translate3d(0, -10px, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(0, 100vh, 0) rotate(720deg); opacity: 0; }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -2037,6 +2066,9 @@ body {
   font-weight: 900;
   pointer-events: none;
   z-index: 9997;
+  /* GPU: puntos flotantes en capa propia */
+  will-change: transform, opacity;
+  transform: translateZ(0);
   animation: floatUp 1.2s ease forwards;
 }
 
@@ -2044,9 +2076,9 @@ body {
 .floating-points.negative { color: var(--color-red);   text-shadow: var(--shadow-glow-red); }
 
 @keyframes floatUp {
-  0%   { opacity: 1; transform: translateY(0) scale(1); }
-  50%  { opacity: 1; transform: translateY(-40px) scale(1.2); }
-  100% { opacity: 0; transform: translateY(-80px) scale(0.8); }
+  0%   { opacity: 1; transform: translate3d(-50%, 0, 0) scale3d(1, 1, 1); }
+  50%  { opacity: 1; transform: translate3d(-50%, -40px, 0) scale3d(1.2, 1.2, 1); }
+  100% { opacity: 0; transform: translate3d(-50%, -80px, 0) scale3d(0.8, 0.8, 1); }
 }
 
 /* ══════════════════════════════════════════════════════════════
