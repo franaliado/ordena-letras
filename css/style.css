@@ -3,9 +3,6 @@
    Sistema de diseño completo basado en la Guía Visual V1
    ============================================================ */
 
-/* ── Google Fonts (local import fallback) ── */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap');
-
 /* ── CSS Custom Properties ── */
 :root {
   /* Paleta exacta de la Guía Visual */
@@ -22,8 +19,8 @@
   --color-white:       #FFFFFF;
   --color-text:        #FFFFFF;
   --color-text-dim:    #94A3B8;
-  --color-card-bg:     rgba(30, 58, 138, 0.35);
-  --color-overlay:     rgba(15, 23, 42, 0.92);
+  --color-card-bg:     rgba(22, 38, 76, 0.92);
+  --color-overlay:     rgba(15, 23, 42, 0.95);
 
   /* Márgenes de seguridad para móviles y barras de navegación */
   --safe-top:          env(safe-area-inset-top, 0px);
@@ -100,9 +97,6 @@ body {
   -webkit-user-select: none;
   /* Elimina el delay de 300ms en todos los toques del documento */
   touch-action: manipulation;
-  /* Fuerza contexto de composición en la raíz */
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
 }
 
 #app {
@@ -120,6 +114,10 @@ body {
   padding-top: var(--safe-top);
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
+  contain: layout paint;
+  overscroll-behavior: none;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -140,9 +138,11 @@ body {
   /* GPU: usa translate3d para activar composición en capa propia */
   transition: opacity var(--t-slow), transform var(--t-slow);
   transform: translate3d(30px, 0, 0);
+  -webkit-transform: translate3d(30px, 0, 0);
   will-change: transform, opacity;
   /* Limita los recálculos de layout al contenedor */
   contain: layout style;
+  overscroll-behavior-y: contain;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -152,6 +152,7 @@ body {
   opacity: 1;
   pointer-events: all;
   transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -174,10 +175,11 @@ body {
   letter-spacing: 0.05em;
   cursor: pointer;
   text-transform: uppercase;
-  /* GPU: promueve botones a capa propia para transiciones suaves */
-  transition: transform var(--t-fast), box-shadow var(--t-fast), filter var(--t-fast);
+  /* GPU: promueve botones a capa propia para transiciones suaves sin repintar */
+  transition: transform var(--t-fast);
   will-change: transform;
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   position: relative;
   overflow: hidden;
   user-select: none;
@@ -275,8 +277,8 @@ body {
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: var(--r-lg);
   padding: var(--gap-md);
-  backdrop-filter: blur(8px);
   box-shadow: var(--shadow-md);
+  contain: layout style;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -300,26 +302,27 @@ body {
   position: absolute;
   top: 48%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
+  -webkit-transform: translate3d(-50%, -50%, 0);
   width: 330px;
   height: 230px;
   background:
-    radial-gradient(ellipse at center, rgba(37,99,235,0.3) 0%, transparent 65%),
+    radial-gradient(ellipse at center, rgba(37,99,235,0.28) 0%, transparent 65%),
     repeating-conic-gradient(
       from 0deg,
-      rgba(255, 183, 3, 0.12) 0deg 12deg,
+      rgba(255, 183, 3, 0.1) 0deg 12deg,
       transparent 12deg 24deg
     );
   border-radius: 50%;
-  filter: blur(1px);
   pointer-events: none;
   z-index: 1;
   animation: spinBurst 45s linear infinite;
+  will-change: transform;
 }
 
 @keyframes spinBurst {
-  0%   { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
+  0%   { transform: translate3d(-50%, -50%, 0) rotate(0deg); }
+  100% { transform: translate3d(-50%, -50%, 0) rotate(360deg); }
 }
 
 /* Cubos 3D flotantes en las 4 esquinas: O, M, A, S */
@@ -339,6 +342,9 @@ body {
     0 8px 16px rgba(0, 0, 0, 0.45),
     inset 0 2px 0 rgba(255, 255, 255, 0.9);
   animation: floatCube 3.5s ease-in-out infinite alternate;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 .logo-cube span {
@@ -352,34 +358,34 @@ body {
 .logo-cube.cube-o {
   top: 6px;
   left: 12px;
-  transform: rotate(-14deg);
+  transform: translate3d(0, 0, 0) rotate(-14deg);
   animation-delay: 0s;
 }
 
 .logo-cube.cube-m {
   top: 10px;
   right: 12px;
-  transform: rotate(14deg);
+  transform: translate3d(0, 0, 0) rotate(14deg);
   animation-delay: 0.7s;
 }
 
 .logo-cube.cube-a {
   bottom: 22px;
   left: 8px;
-  transform: rotate(-18deg);
+  transform: translate3d(0, 0, 0) rotate(-18deg);
   animation-delay: 1.4s;
 }
 
 .logo-cube.cube-s {
   bottom: 24px;
   right: 10px;
-  transform: rotate(18deg);
+  transform: translate3d(0, 0, 0) rotate(18deg);
   animation-delay: 2.1s;
 }
 
 @keyframes floatCube {
-  0%   { transform: translateY(0) rotate(var(--rot, 0deg)); }
-  100% { transform: translateY(-7px) rotate(calc(var(--rot, 0deg) + 4deg)); }
+  0%   { transform: translate3d(0, 0, 0) rotate(var(--rot, 0deg)); }
+  100% { transform: translate3d(0, -7px, 0) rotate(calc(var(--rot, 0deg) + 4deg)); }
 }
 .cube-o { --rot: -14deg; }
 .cube-m { --rot: 14deg; }
@@ -431,11 +437,10 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   filter:
-    drop-shadow(0 2px 0 #B45309)
-    drop-shadow(0 4px 0 #78350F)
-    drop-shadow(0 6px 0 #1E1B4B)
-    drop-shadow(0 8px 18px rgba(0, 0, 0, 0.75));
+    drop-shadow(0 3px 0 #B45309)
+    drop-shadow(0 6px 14px rgba(0, 0, 0, 0.7));
   margin-top: -4px;
+  will-change: transform;
 }
 
 /* Cinta / Ribbon "★ EL RETO DE LAS PALABRAS ★" */
@@ -824,12 +829,14 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 10px var(--gap-md);
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.95);
   border-bottom: 1px solid rgba(255,255,255,0.08);
   flex-shrink: 0;
-  backdrop-filter: blur(8px);
   position: relative;
   z-index: 10;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .hud-left, .hud-right {
@@ -881,15 +888,18 @@ body {
   text-shadow: 0 0 10px rgba(255,183,3,0.5);
   line-height: 1;
   transition: transform 0.2s ease;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 .hud-points-value.bump {
   animation: pointsBump 0.3s ease;
 }
 @keyframes pointsBump {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.3); }
-  100% { transform: scale(1); }
+  0%   { transform: translate3d(0, 0, 0) scale3d(1, 1, 1); }
+  50%  { transform: translate3d(0, 0, 0) scale3d(1.3, 1.3, 1); }
+  100% { transform: translate3d(0, 0, 0) scale3d(1, 1, 1); }
 }
 
 .hud-pause-btn {
@@ -935,6 +945,9 @@ body {
 .life-heart {
   font-size: 1.1rem;
   transition: transform 0.2s ease, opacity 0.3s ease;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.4));
 }
 .life-heart.lost {
@@ -945,9 +958,9 @@ body {
   animation: heartShake 0.4s ease;
 }
 @keyframes heartShake {
-  0%,100% { transform: scale(1); }
-  25%      { transform: scale(0.5) rotate(-10deg); }
-  75%      { transform: scale(1.2) rotate(5deg); }
+  0%,100% { transform: translate3d(0, 0, 0) scale3d(1, 1, 1); }
+  25%      { transform: translate3d(0, 0, 0) scale3d(0.5, 0.5, 1) rotate(-10deg); }
+  75%      { transform: translate3d(0, 0, 0) scale3d(1.2, 1.2, 1) rotate(5deg); }
 }
 
 /* Área de la palabra */
@@ -994,7 +1007,9 @@ body {
   /* GPU: cada ficha en su propia capa de composición */
   transition: transform var(--t-fast), opacity var(--t-normal);
   will-change: transform, opacity;
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  contain: layout paint;
   flex-shrink: 0;
 }
 
@@ -1025,9 +1040,11 @@ body {
   font-weight: 900;
   color: var(--color-white);
   /* GPU: animar slots en la capa de composición */
-  transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+  transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast);
   will-change: transform;
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  contain: layout paint;
   position: relative;
   flex-shrink: 0;
 }
@@ -1138,19 +1155,21 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 3px 0 rgba(0,0,0,0.4);
-  /* GPU: teclas en capa propia — respuesta visual inmediata */
-  transition: transform var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+  /* GPU: teclas en capa propia — respuesta visual inmediata sin repintar */
+  transition: transform var(--t-fast), background var(--t-fast);
   will-change: transform;
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
   position: relative;
   overflow: hidden;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  contain: layout paint;
 }
 
 .key:active, .key.pressed {
   transform: translate3d(0, 2px, 0);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  -webkit-transform: translate3d(0, 2px, 0);
   background: linear-gradient(180deg, #1E40AF 0%, #1E3A8A 100%);
 }
 
@@ -1397,8 +1416,7 @@ body {
   padding: var(--gap-sm) var(--gap-md) max(36px, calc(20px + var(--safe-bottom)));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: var(--color-overlay);
-  backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.96);
 }
 
 .pause-card {
@@ -1883,7 +1901,6 @@ body {
   position: fixed;
   inset: 0;
   background: var(--color-overlay);
-  backdrop-filter: blur(8px);
   display: flex;
   align-items: flex-end;
   justify-content: center;

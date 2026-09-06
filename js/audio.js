@@ -28,6 +28,8 @@ const Audio = (() => {
     return _ctx;
   }
 
+  let _wasPlayingBeforeHidden = false;
+
   function init() {
     const settings = Storage.getSettings();
     _soundsOn = settings.soundsEnabled !== false;
@@ -48,6 +50,27 @@ const Audio = (() => {
     window.addEventListener('click', unlock, { passive: true });
     window.addEventListener('touchstart', unlock, { passive: true });
     window.addEventListener('keydown', unlock, { passive: true });
+
+    // Gestión del ciclo de vida en segundo plano para ahorrar batería y RAM
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (_musicTimer) {
+          _wasPlayingBeforeHidden = true;
+          pauseMusic();
+        }
+        if (_ctx && _ctx.state === 'running') {
+          _ctx.suspend().catch(() => {});
+        }
+      } else {
+        if (_ctx && _ctx.state === 'suspended') {
+          _ctx.resume().catch(() => {});
+        }
+        if (_wasPlayingBeforeHidden) {
+          _wasPlayingBeforeHidden = false;
+          resumeMusic();
+        }
+      }
+    });
 
     _syncToggleIcons();
   }
@@ -73,6 +96,10 @@ const Audio = (() => {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
+    osc.onended = () => {
+      try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+    };
+
     osc.start(now);
     osc.stop(now + 0.08);
   }
@@ -97,6 +124,10 @@ const Audio = (() => {
     osc.connect(gain);
     gain.connect(ctx.destination);
 
+    osc.onended = () => {
+      try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+    };
+
     osc.start(now);
     osc.stop(now + 0.25);
   }
@@ -119,6 +150,10 @@ const Audio = (() => {
 
     osc.connect(gain);
     gain.connect(ctx.destination);
+
+    osc.onended = () => {
+      try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+    };
 
     osc.start(now);
     osc.stop(now + 0.22);
@@ -143,6 +178,10 @@ const Audio = (() => {
 
       osc.connect(gain);
       gain.connect(ctx.destination);
+
+      osc.onended = () => {
+        try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+      };
 
       osc.start(now);
       osc.stop(now + 0.22);
@@ -169,6 +208,10 @@ const Audio = (() => {
       osc.connect(gain);
       gain.connect(ctx.destination);
 
+      osc.onended = () => {
+        try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+      };
+
       osc.start(now);
       osc.stop(now + 0.26);
     });
@@ -193,6 +236,10 @@ const Audio = (() => {
 
       osc.connect(gain);
       gain.connect(ctx.destination);
+
+      osc.onended = () => {
+        try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+      };
 
       osc.start(now);
       osc.stop(now + 0.36);
@@ -237,6 +284,10 @@ const Audio = (() => {
       osc.connect(gain);
       gain.connect(ctx.destination);
 
+      osc.onended = () => {
+        try { osc.disconnect(); gain.disconnect(); } catch (_) {}
+      };
+
       osc.start(now);
       osc.stop(now + 0.19);
     }
@@ -253,6 +304,10 @@ const Audio = (() => {
 
       bOsc.connect(bGain);
       bGain.connect(ctx.destination);
+
+      bOsc.onended = () => {
+        try { bOsc.disconnect(); bGain.disconnect(); } catch (_) {}
+      };
 
       bOsc.start(now);
       bOsc.stop(now + 0.36);

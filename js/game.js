@@ -80,6 +80,7 @@ const Game = (() => {
   // ESTADO DE PARTIDA
   // ══════════════════════════════════════════════════════════════════════
   let _state = null;
+  let _gameOverTimer = null;
 
   function _initialState() {
     return {
@@ -136,6 +137,10 @@ const Game = (() => {
   }
 
   function _launchGame() {
+    if (_gameOverTimer) {
+      clearTimeout(_gameOverTimer);
+      _gameOverTimer = null;
+    }
     Words.resetSession();
     _state = _initialState();
     _state.isRunning = true;
@@ -179,7 +184,7 @@ const Game = (() => {
    * @param {string} letter — letra en mayúsculas
    */
   function pressLetter(letter) {
-    if (!_state || !_state.isRunning || _state.isPaused || _state.isGameOver) return;
+    if (!_state || !_state.isRunning || _state.isPaused || _state.isGameOver || _gameOverTimer) return;
     if (_state.currentPosition >= _state.currentWord.length) return;
 
     const expected = _state.currentWord[_state.currentPosition];
@@ -227,8 +232,11 @@ const Game = (() => {
 
     // Comprobar Game Over
     if (_state.lives <= 0) {
-      // Esperar la animación de error antes de Game Over
-      setTimeout(() => _triggerGameOver(), 600);
+      if (_gameOverTimer) clearTimeout(_gameOverTimer);
+      _gameOverTimer = setTimeout(() => {
+        _gameOverTimer = null;
+        _triggerGameOver();
+      }, 600);
     }
   }
 
@@ -373,6 +381,10 @@ const Game = (() => {
 
   function restartLevel() {
     if (!_state) return;
+    if (_gameOverTimer) {
+      clearTimeout(_gameOverTimer);
+      _gameOverTimer = null;
+    }
     Audio.playButton();
     _state.wordsInLevel      = 0;
     _state.levelPointsEarned = 0;
@@ -382,6 +394,10 @@ const Game = (() => {
   }
 
   function exitToMenu() {
+    if (_gameOverTimer) {
+      clearTimeout(_gameOverTimer);
+      _gameOverTimer = null;
+    }
     Audio.playButton();
     Audio.stopMusic();
     _state = null;
@@ -389,6 +405,10 @@ const Game = (() => {
   }
 
   function playAgain() {
+    if (_gameOverTimer) {
+      clearTimeout(_gameOverTimer);
+      _gameOverTimer = null;
+    }
     Audio.playButton();
     Words.resetSession();
     _state = _initialState();

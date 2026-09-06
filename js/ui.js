@@ -246,15 +246,34 @@ const UI = (() => {
   function _renderLives(lives, maxLives) {
     const container = document.getElementById('game-lives-bar');
     if (!container) return;
-    Utils.clearElement(container);
-    for (let i = 0; i < maxLives; i++) {
-      const heart = Utils.createElement('span', 'life-heart', '❤️');
-      if (i >= lives) {
-        heart.classList.add('lost');
-        heart.textContent = '🖤';
+
+    const existing = container.children;
+    if (existing.length === maxLives) {
+      for (let i = 0; i < maxLives; i++) {
+        const heart = existing[i];
+        if (i >= lives) {
+          if (!heart.classList.contains('lost')) {
+            heart.classList.add('lost');
+            heart.textContent = '🖤';
+          }
+        } else {
+          if (heart.classList.contains('lost')) {
+            heart.classList.remove('lost');
+            heart.textContent = '❤️';
+          }
+        }
       }
-      container.appendChild(heart);
+      return;
     }
+
+    Utils.clearElement(container);
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < maxLives; i++) {
+      const heart = Utils.createElement('span', 'life-heart', i >= lives ? '🖤' : '❤️');
+      if (i >= lives) heart.classList.add('lost');
+      frag.appendChild(heart);
+    }
+    container.appendChild(frag);
   }
 
   function _renderScrambled(scrambled, progress, word) {
@@ -262,56 +281,38 @@ const UI = (() => {
     if (!container) return;
     Utils.clearElement(container);
 
-    // Marcar letras ya usadas (coincidencia de posición con las correctas)
-    // Para mostrar qué letras ya se colocaron en la respuesta
-    const usedMap = _buildUsedMap(word, progress);
+    // Marcar letras ya usadas mediante cálculo puro en memoria (sin tocar el DOM)
+    const usedMap = _buildUsedMap(scrambled, progress);
+    const frag = document.createDocumentFragment();
 
     scrambled.forEach((letter, i) => {
       const tile = Utils.createElement('div', 'letter-tile', letter);
       tile.dataset.index = i;
-      // Si la letra ya fue colocada en una posición correspondiente, marcarla
       if (usedMap[i]) tile.classList.add('used');
-      container.appendChild(tile);
+      frag.appendChild(tile);
     });
+
+    container.appendChild(frag);
   }
 
   /**
-   * Construye un mapa indicando qué índices del scrambled ya fueron "usados".
-   * Hace un matching greedy letra por letra con las posiciones completadas.
+   * Construye un mapa en memoria indicando qué índices del scrambled ya fueron colocados.
+   * Cálculo 100% puro en memoria sin lecturas forzadas del DOM.
    */
-  function _buildUsedMap(word, progress) {
-    const usedMap   = {};
-    // Contadores de cuántas veces aparece cada letra en las posiciones completadas
-    const needed    = {};
+  function _buildUsedMap(scrambled, progress) {
+    const needed = {};
     for (let i = 0; i < progress.length; i++) {
-      if (progress[i] !== null) {
-        needed[progress[i]] = (needed[progress[i]] || 0) + 1;
+      const ch = progress[i];
+      if (ch !== null) {
+        needed[ch] = (needed[ch] || 0) + 1;
       }
     }
-    // Marcar en el scrambled
-    const _scrambled = document.querySelectorAll('.letter-tile');
-    const used       = { ...needed };
-    _scrambled.forEach((_, i) => {
-      // Se usa el parámetro de la función, no el DOM (al llamar esta función aún no existe el DOM)
-    });
-
-    // Implementación más simple: devolver objeto vacío, se maneja en renderScrambled
-    // El marcado visual se hace tracking qué posiciones completadas existen
-    const scrambledArr = Array.from(document.querySelectorAll('.letter-tile'));
-
-    // Recuento de letras completadas
-    const completedCount = {};
-    for (const ch of progress) {
-      if (ch !== null) completedCount[ch] = (completedCount[ch] || 0) + 1;
-    }
-
-    // Marcar tiles del scrambled que correspondan
-    const localUsed = {};
-    for (let idx = 0; idx < scrambledArr.length; idx++) {
-      const ch = scrambledArr[idx].textContent;
-      if (completedCount[ch] && (localUsed[ch] || 0) < completedCount[ch]) {
-        usedMap[idx]   = true;
-        localUsed[ch]  = (localUsed[ch] || 0) + 1;
+    const usedMap = {};
+    for (let i = 0; i < scrambled.length; i++) {
+      const ch = scrambled[i];
+      if (needed[ch] && needed[ch] > 0) {
+        usedMap[i] = true;
+        needed[ch]--;
       }
     }
     return usedMap;
@@ -322,6 +323,7 @@ const UI = (() => {
     if (!container) return;
     Utils.clearElement(container);
 
+    const frag = document.createDocumentFragment();
     for (let i = 0; i < word.length; i++) {
       const slot = Utils.createElement('div', 'answer-slot');
       slot.id = `slot-${i}`;
@@ -332,8 +334,9 @@ const UI = (() => {
       } else if (i === currentPos) {
         slot.classList.add('current');
       }
-      container.appendChild(slot);
+      frag.appendChild(slot);
     }
+    container.appendChild(frag);
   }
 
   function _clearFeedback() {
@@ -849,26 +852,23 @@ const UI = (() => {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Elimina partículas anteriores en un solo paso (sin iterar .remove() una a una)
-    container.querySelectorAll('.particle').forEach(p => p.remove());
+    // Elimina partículas anteriores de inmediato
+    Utils.clearElement(container);
 
-    // Usar DocumentFragment para una sola inserción en el DOM
     const frag = document.createDocumentFragment();
-    const count = 30;
+    const count = 24;
 
     for (let i = 0; i < count; i++) {
       const p = document.createElement('div');
       p.className = 'particle';
 
       const xPct  = Math.random() * 100;           // % horizontal
-      const delay = Math.random() * 0.8;
-      const dur   = 1 + Math.random() * 1.5;
-      const size  = 4 + Math.random() * 8;
+      const delay = Math.random() * 0.6;
+      const dur   = 1 + Math.random() * 1.2;
+      const size  = 4 + Math.random() * 7;
       const color = COLORS[Math.floor(Math.random() * COLORS.length)];
       const isCircle = Math.random() > 0.5;
 
-      // Usamos translate3d para posicionar horizontalmente: no mueve left/top
-      // (propiedades que disparan layout), solo transform (compositor GPU).
       p.style.cssText = [
         `background:${color}`,
         `width:${size}px`,
@@ -876,16 +876,20 @@ const UI = (() => {
         `border-radius:${isCircle ? '50%' : '2px'}`,
         `animation-delay:${delay}s`,
         `animation-duration:${dur}s`,
-        // Offset horizontal: translate3d en X desde el centro del contenedor
         `transform:translate3d(calc(${xPct}vw - 50%), -10px, 0)`,
+        `-webkit-transform:translate3d(calc(${xPct}vw - 50%), -10px, 0)`,
       ].join(';');
 
-      // Limpieza automática al terminar la animación
       p.addEventListener('animationend', () => p.remove(), { once: true });
       frag.appendChild(p);
     }
 
     container.appendChild(frag);
+
+    // Limpieza de seguridad por si animationend no se dispara en segundo plano
+    setTimeout(() => {
+      if (container) Utils.clearElement(container);
+    }, 2500);
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -897,7 +901,6 @@ const UI = (() => {
     fp.className = `floating-points ${type}`;
     fp.textContent = text;
 
-    // Calcular posición de referencia
     let x = window.innerWidth / 2;
     let y = window.innerHeight / 2;
 
@@ -907,15 +910,16 @@ const UI = (() => {
       y = rect.top;
     }
 
-    // Posicionar con left/top fuera del flujo (position:fixed ya lo está).
-    // El translateX(-50%) ahora lo gestiona el keyframe CSS (floatUp),
-    // por lo que aquí solo necesitamos fijar la coordenada de origen.
     fp.style.left = `${x}px`;
     fp.style.top  = `${y}px`;
-    // Nota: NO asignamos transform aquí; el keyframe CSS ya incluye translate3d(-50%,...)
 
     document.body.appendChild(fp);
     fp.addEventListener('animationend', () => fp.remove(), { once: true });
+
+    // Limpieza de seguridad
+    setTimeout(() => {
+      if (fp.parentNode) fp.parentNode.removeChild(fp);
+    }, 1500);
   }
 
   // ══════════════════════════════════════════════════════════════════════

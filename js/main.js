@@ -64,25 +64,21 @@
   // Usamos 'pointerdown' en vez de 'click' para eliminar el delay de 300ms
   // en Android WebView / Capacitor. El evento se dispara inmediatamente.
   const gameKeyboard = document.getElementById('game-keyboard');
-  gameKeyboard.addEventListener('pointerdown', function(e) {
-    const btn = e.target.closest('.key');
-    if (!btn) return;
-    const key = btn.dataset.key;
-    if (!key) return;
+  if (gameKeyboard) {
+    gameKeyboard.addEventListener('pointerdown', function(e) {
+      const btn = e.target.closest('.key');
+      if (!btn) return;
+      const key = btn.dataset.key;
+      if (!key) return;
 
-    // Capturar el puntero para evitar que el scroll intervenga
-    e.preventDefault();
+      // Evitar propagación o retraso de emulación táctil
+      e.preventDefault();
 
-    Audio.playButton();
+      if (key === 'BACKSPACE') return;
 
-    if (key === 'BACKSPACE') {
-      // Backspace no tiene función en la mecánica actual
-      // (posición no retrocede — el jugador solo puede avanzar)
-      return;
-    }
-
-    Game.pressLetter(key);
-  }, { passive: false });
+      Game.pressLetter(key);
+    }, { passive: false });
+  }
 
   // ── 8. Teclado físico (para pruebas en PC) ────────────────────────────────
   document.addEventListener('keydown', function(e) {
@@ -140,14 +136,17 @@
     });
   }
 
-  // ── 10. Prevenir scroll y zoom en dispositivos móviles ────────────────────
-  document.addEventListener('touchmove', function(e) {
+  // ── 10. Prevenir gestos parásitos sin romper el scroll fluido de pantallas ──
+  document.addEventListener('gesturestart', function(e) {
     e.preventDefault();
   }, { passive: false });
 
-  document.addEventListener('gesturestart', function(e) {
-    e.preventDefault();
-  });
+  document.addEventListener('touchmove', function(e) {
+    const scrollable = e.target.closest('.records-list, .help-card, .stats-history, #screen-records, #screen-stats, #screen-help, #screen-player-name');
+    if (!scrollable) {
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
 
   // ── 11. Visibilidad: pausar/reanudar música al minimizar ──────────────────
   document.addEventListener('visibilitychange', function() {
