@@ -151,6 +151,15 @@ const Game = (() => {
       Audio.startMusic();
       // Renderizar el tablero con el estado cargado
       UI.renderGameBoard(_state);
+      // Re‑vincular los manejadores de entrada después de restaurar la UI
+      UI.initInputHandlers();
+      // Si la palabra guardada ya estaba completa, reiniciar su progreso para evitar bloqueo
+      if (_state.currentPosition >= (_state.currentWord ? _state.currentWord.length : 0)) {
+        // Reiniciar el slot de respuesta y posición
+        _state.answerProgress = new Array(_state.currentWord.length).fill(null);
+        _state.currentPosition = 0;
+        UI.renderGameBoard(_state);
+      }
       return;
     }
     // No hay estado guardado, iniciar nuevo juego
