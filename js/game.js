@@ -110,6 +110,7 @@ const Game = (() => {
       currentPosition: 0,     // índice de la siguiente letra a introducir
       wordErrors:      0,     // errores cometidos en esta palabra
       wordPoints:      0,     // puntos acumulados en esta palabra
+      wordCompleted:   false, // indica si la palabra actual ya fue completada/validada
     };
   }
 
@@ -136,33 +137,90 @@ const Game = (() => {
     _launchGame();
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  // CARGA Y RESTAURACIÓN DE PARTIDA
+  // ══════════════════════════════════════════════════════════════════════
+
+  /**
+   * Restaura la partida guardada con validación automática, prevención de
+   * estados fantasmas/bloqueos y activación de controladores de eventos.
+   * @param {Object} saved — Estado persistido recuperado de localStorage
+   */
+  function _restoreGame(saved) {
+    _state = saved;
+    _state.isRunning  = true;
+    _state.isPaused   = false;
+    _state.isGameOver = false;
+
+    // Cambiar a pantalla de juego y reanudar audio
+    UI.showScreen('screen-game');
+    Audio.startMusic();
+
+    // Reactivar y asegurar los controladores de eventos de entrada
+    if (typeof UI.initInputHandlers === 'function') {
+      UI.initInputHandlers();
+    }
+
+    const word = _state.currentWord || '';
+    const wordLen = word.length;
+    const progress = Array.isArray(_state.answerProgress) ? _state.answerProgress : [];
+
+    // Comprobar si la palabra actual ya tiene todas las letras llenas o fue completada
+    const isCompletedOrFull = wordLen > 0 && (
+      _state.currentPosition >= wordLen ||
+      _state.wordCompleted === true ||
+      (progress.length === wordLen && progress.every(ch => ch !== null && ch !== undefined && ch !== '')) ||
+      (progress.length === wordLen && progress.join('') === word)
+    );
+
+    if (isCompletedOrFull) {
+      // 1. Mostrar inicialmente el tablero con las letras colocadas en los slots (en verde)
+      UI.renderGameBoard(_state);
+
+      // 2. Prevención de estados fantasmas: Forzar un setTimeout de 100ms para ejecutar la validación
+      // lógica y continuar el flujo normal (dar puntos si corresponde, limpiar slot y cargar siguiente palabra)
+      setTimeout(() => {
+        if (!_state || !_state.isRunning) return;
+
+        if (_state.wordCompleted) {
+          // Si la palabra ya había sido validada/puntuada en la sesión anterior,
+          // limpiar slot y avanzar inmediatamente al siguiente turno
+          if (_state.wordsInLevel >= CONFIG.WORDS_PER_LEVEL) {
+            _handleLevelComplete();
+          } else {
+            UI.showScreen('screen-game');
+            _loadNewWord();
+            if (typeof Storage !== 'undefined' && Storage.saveGameState) {
+              Storage.saveGameState(_state);
+            }
+          }
+        } else {
+          // Invocar de inmediato la función de validación de palabra
+          _handleWordComplete();
+        }
+      }, 100);
+    } else {
+      // Si la palabra está en progreso normal (incompleta), renderizar el tablero
+      // y mantener activos los controladores de eventos para seguir escribiendo
+      UI.renderGameBoard(_state);
+    }
+  }
+
   function _launchGame() {
     if (_gameOverTimer) {
       clearTimeout(_gameOverTimer);
       _gameOverTimer = null;
     }
     Words.resetSession();
-    // Intentar cargar estado guardado
-    const saved = Storage.getGameState();
-    if (saved) {
-      _state = saved;
-      _state.isRunning = true;
-      UI.showScreen('screen-game');
-      Audio.startMusic();
-      // Renderizar el tablero con el estado cargado
-      UI.renderGameBoard(_state);
-      // Re‑vincular los manejadores de entrada después de restaurar la UI
-      UI.initInputHandlers();
-      // Si la palabra guardada ya estaba completa, reiniciar su progreso para evitar bloqueo
-      if (_state.currentPosition >= (_state.currentWord ? _state.currentWord.length : 0)) {
-        // Reiniciar el slot de respuesta y posición
-        _state.answerProgress = new Array(_state.currentWord.length).fill(null);
-        _state.currentPosition = 0;
-        UI.renderGameBoard(_state);
-      }
+
+    // Intentar cargar y restaurar partida guardada
+    const saved = (typeof Storage !== 'undefined' && Storage.getGameState) ? Storage.getGameState() : null;
+    if (saved && saved.currentWord && typeof saved.level === 'number') {
+      _restoreGame(saved);
       return;
     }
-    // No hay estado guardado, iniciar nuevo juego
+
+    // No hay estado guardado válido, iniciar nuevo juego
     _state = _initialState();
     _state.isRunning = true;
 
@@ -192,6 +250,7 @@ const Game = (() => {
     _state.currentPosition  = 0;
     _state.wordErrors       = 0;
     _state.wordPoints       = 0;
+    _state.wordCompleted    = false;
 
     UI.renderGameBoard(_state);
   }
@@ -268,6 +327,8 @@ const Game = (() => {
   // ══════════════════════════════════════════════════════════════════════
 
   function _handleWordComplete() {
+    _state.wordCompleted = true;
+
     // Puntos base según la tabla del nivel actual
     const baseWordPoints = getBasePointsForLevel(_state.level);
 
@@ -315,7 +376,9 @@ const Game = (() => {
     Audio.playWordComplete();
     UI.showWordComplete(_state, isPerfect, lifeGained, _state.wordPoints, breakdown);
     // Guardar estado tras completar palabra
-    Storage.saveGameState(_state);
+    if (typeof Storage !== 'undefined' && Storage.saveGameState) {
+      Storage.saveGameState(_state);
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -335,6 +398,9 @@ const Game = (() => {
     } else {
       UI.showScreen('screen-game');
       _loadNewWord();
+      if (typeof Storage !== 'undefined' && Storage.saveGameState) {
+        Storage.saveGameState(_state);
+      }
     }
   }
 
@@ -358,7 +424,9 @@ const Game = (() => {
       UI.showScreen('screen-game');
       _loadNewWord();
       // Guardar estado tras avanzar de nivel
-      Storage.saveGameState(_state);
+      if (typeof Storage !== 'undefined' && Storage.saveGameState) {
+        Storage.saveGameState(_state);
+      }
     }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -372,6 +440,11 @@ const Game = (() => {
 
     Audio.playGameOver();
     Audio.stopMusic();
+
+    // Limpiar estado guardado al terminar la partida
+    if (typeof Storage !== 'undefined' && Storage.clearGameState) {
+      Storage.clearGameState();
+    }
 
     // Guardar resultado (incluyendo el nivel alcanzado)
     const result = {
@@ -418,6 +491,9 @@ const Game = (() => {
     _state.isPaused = false;
     UI.showScreen('screen-game');
     _loadNewWord();
+    if (typeof Storage !== 'undefined' && Storage.saveGameState) {
+      Storage.saveGameState(_state);
+    }
   }
 
   function exitToMenu() {
@@ -437,12 +513,18 @@ const Game = (() => {
       _gameOverTimer = null;
     }
     Audio.playButton();
+    if (typeof Storage !== 'undefined' && Storage.clearGameState) {
+      Storage.clearGameState();
+    }
     Words.resetSession();
     _state = _initialState();
     _state.isRunning = true;
     UI.showScreen('screen-game');
     Audio.startMusic();
     _loadNewWord();
+    if (typeof Storage !== 'undefined' && Storage.saveGameState) {
+      Storage.saveGameState(_state);
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -484,6 +566,7 @@ const Game = (() => {
     getConfig,
     getBasePoints,
     handleKeyboard,
+    restoreGame: _restoreGame,
   };
 
 })();
