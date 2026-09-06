@@ -21,6 +21,7 @@ const Storage = (() => {
     SETTINGS:     'ol_settings',
     RECORDS:      'ol_records',     // historial completo de récords del dispositivo
     NAME_SET:     'ol_name_set',    // flag: el jugador ya eligió su nombre alguna vez
+    GAME_STATE:   'ol_game_state', // estado actual de la partida
   };
 
   // ── Estado de configuración (cacheado en memoria) ───────────────────────────
@@ -271,11 +272,30 @@ const Storage = (() => {
     try {
       Object.values(KEYS).forEach(k => localStorage.removeItem(k));
     } catch (_) {}
+    // Clear the persisted game state as well
+    clearGameState();
     _settings = null;
     _stats = null;
     if (hadName && name) {
       setPlayerName(name); // restaura nombre si ya existía
     }
+  }
+
+  // ── API: Guardado y carga del estado de partida ─────────────────────────────────────
+  function getGameState() {
+    const raw = _read(KEYS.GAME_STATE);
+    return raw ? raw : null;
+  }
+
+  function saveGameState(state) {
+    if (state && typeof state === 'object') {
+      const copy = JSON.parse(JSON.stringify(state));
+      _write(KEYS.GAME_STATE, copy);
+    }
+  }
+
+  function clearGameState() {
+    try { localStorage.removeItem(KEYS.GAME_STATE); } catch (_) {}
   }
 
   // ── Puente App Inventor: listener de WebViewString ─────────────────────────
@@ -306,6 +326,9 @@ const Storage = (() => {
     getPersonalRecords,
     getBestScore,
     resetAll,
+    getGameState,
+    saveGameState,
+    clearGameState,
   };
 
 })();

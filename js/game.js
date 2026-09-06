@@ -142,6 +142,18 @@ const Game = (() => {
       _gameOverTimer = null;
     }
     Words.resetSession();
+    // Intentar cargar estado guardado
+    const saved = Storage.getGameState();
+    if (saved) {
+      _state = saved;
+      _state.isRunning = true;
+      UI.showScreen('screen-game');
+      Audio.startMusic();
+      // Renderizar el tablero con el estado cargado
+      UI.renderGameBoard(_state);
+      return;
+    }
+    // No hay estado guardado, iniciar nuevo juego
     _state = _initialState();
     _state.isRunning = true;
 
@@ -211,6 +223,8 @@ const Game = (() => {
     // Animaciones / UI
     Audio.playCorrect();
     UI.onLetterCorrect(pos, letter, _state);
+    // Guardar estado tras letra correcta
+    Storage.saveGameState(_state);
 
     // Comprobar si la palabra está completa
     if (_state.currentPosition === _state.currentWord.length) {
@@ -291,6 +305,8 @@ const Game = (() => {
 
     Audio.playWordComplete();
     UI.showWordComplete(_state, isPerfect, lifeGained, _state.wordPoints, breakdown);
+    // Guardar estado tras completar palabra
+    Storage.saveGameState(_state);
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -322,17 +338,19 @@ const Game = (() => {
    * Llamado cuando el jugador pulsa SIGUIENTE NIVEL.
    * Progresión infinita de niveles (1 al 9, y continúa indefinidamente en 9+).
    */
-  function startNextLevel() {
-    if (!_state) return;
-    Audio.playButton();
+    function startNextLevel() {
+      if (!_state) return;
+      Audio.playButton();
 
-    _state.level++;
-    _state.wordsInLevel      = 0;
-    _state.levelPointsEarned = 0;
+      _state.level++;
+      _state.wordsInLevel      = 0;
+      _state.levelPointsEarned = 0;
 
-    UI.showScreen('screen-game');
-    _loadNewWord();
-  }
+      UI.showScreen('screen-game');
+      _loadNewWord();
+      // Guardar estado tras avanzar de nivel
+      Storage.saveGameState(_state);
+    }
 
   // ══════════════════════════════════════════════════════════════════════
   // GAME OVER
