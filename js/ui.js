@@ -10,6 +10,7 @@
  */
 
 const UI = (() => {
+  let _inputHandlersInitialized = false;
 
   // ── Historial de pantallas (para botón "Volver" y navegación nativa) ───────
   let _screenHistory = [];
@@ -96,7 +97,85 @@ const UI = (() => {
     });
   }
 
-  function _onScreenShow(id) {
+  function initInputHandlers() {
+    if (_inputHandlersInitialized) return;
+    _inputHandlersInitialized = true;
+
+    // Virtual keyboard (buttons .key)
+    const gameKeyboard = document.getElementById('game-keyboard');
+    if (gameKeyboard) {
+      gameKeyboard.addEventListener('pointerdown', function(e) {
+        const btn = e.target.closest('.key');
+        if (!btn) return;
+        const key = btn.dataset.key;
+        if (!key) return;
+        e.preventDefault();
+        if (key === 'BACKSPACE') return;
+        Game.pressLetter(key);
+      }, { passive: false });
+    }
+
+    // Physical keyboard
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT') return;
+      const key = e.key.toUpperCase();
+
+      if (e.key === 'Escape') {
+        const state = Game.getState();
+        if (state && state.isRunning && !state.isPaused) {
+          UI.showPause();
+          return;
+        }
+      }
+
+      if (e.key === 'Enter') {
+        const screen = document.querySelector('.screen.active');
+        if (screen && screen.id === 'screen-word-complete') {
+          Game.nextWord();
+          return;
+        }
+        if (screen && screen.id === 'screen-level-complete') {
+          Game.startNextLevel();
+          return;
+        }
+      }
+
+      if (/^[A-Z]$/.test(key)) {
+        Game.pressLetter(key);
+        const keyEl = document.querySelector(`.key[data-key="${key}"]`);
+        if (keyEl) Utils.flashClass(keyEl, 'pressed', 200);
+      }
+    });
+
+    // Name input handlers
+    const nameInput = document.getElementById('player-name-input');
+    if (nameInput) {
+      nameInput.addEventListener('input', function() {
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.toUpperCase();
+        if (start !== null && end !== null) this.setSelectionRange(start, end);
+        Audio.playButton();
+      });
+      nameInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') UI.confirmPlayerName();
+      });
+    }
+
+    // Gesture and touchmove handlers
+    document.addEventListener('gesturestart', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('touchmove', function(e) {
+      const scrollable = e.target.closest('.records-list, .help-card, .stats-history, #screen-records, #screen-stats, #screen-help, #screen-player-name');
+      if (!scrollable) {
+        if (e.cancelable) e.preventDefault();
+      }
+    }, { passive: false });
+  }
+
+function _onScreenShow(id) { // existing code unchanged
     switch (id) {
       case 'screen-records':
         renderRecords('top10');
@@ -784,7 +863,7 @@ const UI = (() => {
   // PANTALLA: AJUSTES
   // ══════════════════════════════════════════════════════════════════════
 
-  function renderSettings() {
+  function renderSettings() { // existing code unchanged
     const settings = Storage.getSettings();
 
     const tSound  = document.getElementById('toggle-sounds');
@@ -964,7 +1043,7 @@ const UI = (() => {
     confirmResetData,
     showHelp,
     showToast,
-    initHistory,
-  };
+    initInputHandlers,
+    initHistory  };
 
 })();
