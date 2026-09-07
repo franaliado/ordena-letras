@@ -279,11 +279,11 @@
     <button class="btn btn-blue" id="btn-my-position" onclick="UI.highlightMyPosition()" style="margin-top:auto;">MI POSICIÓN</button>
   </section>
 
-  <!-- PANTALLA 9 — GAME OVER -->
+  <!-- PANTALLA 9 — FIN DE PARTIDA -->
   <section id="screen-game-over" class="screen">
     <div class="card game-over-card">
-      <div class="game-over-skull">💀</div>
-      <div class="game-over-title">GAME OVER</div>
+      <div class="game-over-icon" id="go-icon">🎉</div>
+      <div class="game-over-title" id="go-title">PARTIDA FINALIZADA</div>
       <div class="game-over-new-record hidden" id="go-new-record">🌟 ¡NUEVO RÉCORD!</div>
       <div class="game-over-stats">
         <div class="game-over-stat-row">
@@ -305,10 +305,6 @@
         <div class="game-over-stat-row">
           <span class="game-over-stat-label">Errores</span>
           <span class="game-over-stat-value" id="go-errors">0</span>
-        </div>
-        <div class="game-over-stat-row">
-          <span class="game-over-stat-label">Vidas Restantes</span>
-          <span class="game-over-stat-value" id="go-lives">0</span>
         </div>
       </div>
       <div class="flex-col gap-md w-full" style="margin-top:8px;">

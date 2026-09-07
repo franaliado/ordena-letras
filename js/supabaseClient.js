@@ -203,16 +203,19 @@ const SupabaseClient = (() => {
         };
       });
 
-      // Deduplicar: si un mismo jugador obtiene la misma puntuación varias veces, mostrarla solo una vez
-      const seen = new Set();
-      const deduplicated = formatted.filter(rec => {
-        const key = `${(rec.name || 'JUGADOR').trim().toLowerCase()}|${rec.score}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
+      // Deduplicar: cada jugador aparece una única vez con su puntuación máxima histórica
+      const seenPlayers = new Set();
+      const topPlayersOnly = [];
+      for (const rec of formatted) {
+        const key = (rec.name || 'JUGADOR').trim().toLowerCase();
+        if (!seenPlayers.has(key)) {
+          seenPlayers.add(key);
+          topPlayersOnly.push(rec);
+          if (topPlayersOnly.length === limit) break;
+        }
+      }
 
-      return { success: true, data: deduplicated.slice(0, limit) };
+      return { success: true, data: topPlayersOnly };
     } catch (err) {
       console.warn('[Supabase] Excepción al obtener ranking:', err);
       return { success: false, error: err.message };

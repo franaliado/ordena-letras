@@ -649,7 +649,6 @@ function _onScreenShow(id) { // existing code unchanged
     const levelEl  = document.getElementById('go-level');
     const wordsEl  = document.getElementById('go-words');
     const errorsEl = document.getElementById('go-errors');
-    const livesEl  = document.getElementById('go-lives');
     const recEl    = document.getElementById('go-new-record');
 
     if (scoreEl)  scoreEl.textContent  = Utils.formatScore(state.totalScore);
@@ -657,26 +656,36 @@ function _onScreenShow(id) { // existing code unchanged
     if (levelEl)  levelEl.textContent  = state.level;
     if (wordsEl)  wordsEl.textContent  = state.totalWords;
     if (errorsEl) errorsEl.textContent = state.totalErrors;
-    if (livesEl)  livesEl.textContent  = state.lives;
 
     if (recEl) {
       recEl.classList.toggle('hidden', !isNewRecord);
     }
 
-    const skull = document.querySelector('.game-over-skull');
-    const goTitle = document.querySelector('.game-over-title');
+    const iconEl = document.getElementById('go-icon') || document.querySelector('.game-over-icon') || document.querySelector('.game-over-skull');
+    const goTitle = document.getElementById('go-title') || document.querySelector('.game-over-title');
+
     if (isVictory) {
-      if (skull)   skull.textContent   = '🏆';
-      if (goTitle) goTitle.textContent = '¡VICTORIA!';
-      if (goTitle) goTitle.style.color = 'var(--color-gold)';
+      if (iconEl)  iconEl.textContent  = '🏆';
+      if (goTitle) {
+        goTitle.textContent = '¡VICTORIA!';
+        goTitle.style.color = 'var(--color-gold)';
+      }
+    } else if (isNewRecord) {
+      if (iconEl)  iconEl.textContent  = '🏆';
+      if (goTitle) {
+        goTitle.textContent = '¡NUEVO RÉCORD!';
+        goTitle.style.color = 'var(--color-gold)';
+      }
     } else {
-      if (skull)   skull.textContent   = '💀';
-      if (goTitle) goTitle.textContent = 'GAME OVER';
-      if (goTitle) goTitle.style.color = '';
+      if (iconEl)  iconEl.textContent  = '🎉';
+      if (goTitle) {
+        goTitle.textContent = 'PARTIDA FINALIZADA';
+        goTitle.style.color = '';
+      }
     }
 
     showScreen('screen-game-over');
-    if (isVictory) _spawnParticles('toast-container');
+    if (isVictory || isNewRecord) _spawnParticles('toast-container');
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -692,7 +701,7 @@ function _onScreenShow(id) { // existing code unchanged
 
     if (tab === 'personal') {
       const records = Storage.getPersonalRecords(playerName);
-      const uniqueRecords = _deduplicateRecords(records);
+      const uniqueRecords = _deduplicatePersonalRecords(records);
       if (uniqueRecords.length === 0) {
         const empty = Utils.createElement('p', '', '¡Aún no tienes puntuaciones. ¡Juega tu primera partida! 🎮');
         empty.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-xl) 0;font-size:var(--fs-sm);';
@@ -703,7 +712,7 @@ function _onScreenShow(id) { // existing code unchanged
       return;
     }
 
-    // Pestaña TOP 10 (Ranking Global Supabase)
+    // Pestaña TOP 10 (Ranking Global Supabase / Local)
     const loadingEl = Utils.createElement('p', '', 'Cargando ranking global... 🌐');
     loadingEl.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-lg) 0;font-size:var(--fs-sm);';
     list.appendChild(loadingEl);
@@ -712,7 +721,7 @@ function _onScreenShow(id) { // existing code unchanged
     if (typeof SupabaseClient !== 'undefined' && SupabaseClient.fetchTop10Leaderboard) {
       const res = await SupabaseClient.fetchTop10Leaderboard(50);
       if (res.success && res.data && res.data.length > 0) {
-        globalRecords = _deduplicateRecords(res.data).slice(0, 10);
+        globalRecords = _getTop10UniquePlayers(res.data);
       }
     }
 
@@ -722,7 +731,7 @@ function _onScreenShow(id) { // existing code unchanged
       _renderRecordsList(globalRecords, list, playerName);
     } else {
       // Fallback a récords locales si Supabase está offline
-      const localRecords = _deduplicateRecords(Storage.getRecords()).slice(0, 10);
+      const localRecords = _getTop10UniquePlayers(Storage.getRecords());
       if (localRecords.length === 0) {
         const empty = Utils.createElement('p', '', '¡Aún no hay récords! Sé el primero. 🎮');
         empty.style.cssText = 'color:var(--color-text-dim);text-align:center;padding:var(--gap-xl) 0;font-size:var(--fs-sm);';
@@ -734,27 +743,50 @@ function _onScreenShow(id) { // existing code unchanged
   }
 
   /**
-   * Filtra registros para no mostrar puntuaciones duplicadas del mismo jugador.
-   * Si un usuario obtiene exactamente la misma cantidad de puntos varias veces,
-   * solo se muestra una vez por esa puntuación única.
-   * Solo se permiten entradas múltiples si la puntuación es diferente.
+   * TOP 10: Única aparición por jugador.
+   * Filtra registros para que cada jugador aparezca una sola vez,
+   * reflejando estrictamente su puntuación máxima histórica y descartando las menores.
    */
-  function _deduplicateRecords(records) {
+  function _getTop10UniquePlayers(records) {
     if (!Array.isArray(records)) return [];
-    const seen = new Set();
-    return records.filter(rec => {
+    // Ordenar de mayor a menor puntuación por seguridad
+    const sorted = [...records].sort((a, b) => (b.score || 0) - (a.score || 0));
+    const seenPlayers = new Set();
+    const topUnique = [];
+
+    for (const rec of sorted) {
       const nameKey = (rec.name || 'Jugador').trim().toLowerCase();
-      const scoreKey = rec.score;
-      const key = `${nameKey}|${scoreKey}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+      if (!seenPlayers.has(nameKey)) {
+        seenPlayers.add(nameKey);
+        topUnique.push(rec);
+        if (topUnique.length === 10) break;
+      }
+    }
+    return topUnique;
+  }
+
+  /**
+   * PERSONAL: Historial del usuario limpio sin puntuaciones idénticas duplicadas innecesarias.
+   * Si existen puntuaciones idénticas repetidas, se agrupan/deduplican.
+   */
+  function _deduplicatePersonalRecords(records) {
+    if (!Array.isArray(records)) return [];
+    const sorted = [...records].sort((a, b) => (b.score || 0) - (a.score || 0));
+    const seenScores = new Set();
+    const unique = [];
+
+    for (const rec of sorted) {
+      const scoreKey = rec.score || 0;
+      if (!seenScores.has(scoreKey)) {
+        seenScores.add(scoreKey);
+        unique.push(rec);
+      }
+    }
+    return unique;
   }
 
   function _renderRecordsList(records, container, currentPlayerName) {
-    const uniqueRecords = _deduplicateRecords(records);
-    uniqueRecords.forEach((rec, i) => {
+    records.forEach((rec, i) => {
       const item = Utils.createElement('div', 'record-item');
       const rank = i + 1;
 
