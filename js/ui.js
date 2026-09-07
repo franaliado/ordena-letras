@@ -961,11 +961,65 @@ function _onScreenShow(id) { // existing code unchanged
   // PARTÍCULAS DE CELEBRACIÓN
   // ══════════════════════════════════════════════════════════════════════
 
-  const COLORS = ['#FFB703','#22C55E','#EF4444','#3B82F6','#FF7A00','#FFFFFF'];
+  const COLORS = ['#FFB703', '#22C55E', '#EF4444', '#3B82F6', '#EC4899', '#8B5CF6', '#F59E0B', '#10B981', '#6366F1'];
 
   function _spawnParticles(containerId) {
-    // Animación de partículas eliminada por completo para que la pantalla quede limpia y sin elementos rotos
-    return;
+    // Inyectamos el overlay directamente en document.body para escapar del contexto de contención (.screen)
+    // y garantizar que cubra el 100% de la pantalla real.
+    const overlay = document.createElement('div');
+    overlay.className = 'confetti-celebration-overlay';
+    overlay.style.cssText = [
+      'position: fixed',
+      'top: 0',
+      'left: 0',
+      'width: 100vw',
+      'height: 100vh',
+      'pointer-events: none',
+      'z-index: 99999',
+      'overflow: hidden',
+    ].join(';');
+
+    const frag = document.createDocumentFragment();
+    const count = 35; // Lluvia festiva fluida y bien distribuida
+
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+
+      // Posición horizontal distribuida del 2% al 98% del viewport
+      const leftPct = Math.random() * 96 + 2;
+      const delay = Math.random() * 0.5;
+      const dur = 1.5 + Math.random() * 1.3;
+      const width = 6 + Math.random() * 7;
+      const isRect = Math.random() > 0.4;
+      const height = isRect ? (8 + Math.random() * 8) : width;
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      const isCircle = !isRect && Math.random() > 0.5;
+      const drift = Math.round((Math.random() - 0.5) * 80);
+
+      p.style.cssText = [
+        `position: absolute`,
+        `top: -20px`,
+        `left: ${leftPct}vw`,
+        `width: ${width}px`,
+        `height: ${height}px`,
+        `background: ${color}`,
+        `border-radius: ${isCircle ? '50%' : '2px'}`,
+        `will-change: transform, opacity`,
+        `animation: particleFall ${dur}s cubic-bezier(0.25, 1, 0.5, 1) ${delay}s forwards`,
+        `--drift: ${drift}px`,
+      ].join(';');
+
+      p.addEventListener('animationend', () => p.remove(), { once: true });
+      frag.appendChild(p);
+    }
+
+    overlay.appendChild(frag);
+    document.body.appendChild(overlay);
+
+    // Auto-limpieza tras finalizar la animación
+    setTimeout(() => {
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }, 3200);
   }
 
   // ══════════════════════════════════════════════════════════════════════

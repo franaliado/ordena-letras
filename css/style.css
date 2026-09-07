@@ -1871,22 +1871,20 @@ body {
 /* ══════════════════════════════════════════════════════════════
    PARTÍCULAS (celebración)
    ══════════════════════════════════════════════════════════════ */
-/* .particle-container ya no se necesita como clase CSS:
-   el overlay se crea y estiliza directamente desde JS */
 .particle-container {
   display: none;
 }
 
 @keyframes particleFall {
   0% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
+    transform: translateY(0) translateX(0) rotate(0deg) rotateX(0deg);
     opacity: 1;
   }
-  80% {
+  75% {
     opacity: 0.9;
   }
   100% {
-    transform: translate3d(var(--drift, 0px), 105vh, 0) rotate(720deg);
+    transform: translateY(105vh) translateX(var(--drift, 30px)) rotate(720deg) rotateX(360deg);
     opacity: 0;
   }
 }
