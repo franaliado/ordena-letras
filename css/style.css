@@ -968,6 +968,11 @@ body {
   transform: none;
 }
 
+.hint-bar {
+  margin-top: 28px;
+  margin-bottom: 6px;
+}
+
 /* Vidas */
 .game-lives-bar {
   width: 100%;
