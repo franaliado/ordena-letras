@@ -960,46 +960,63 @@ function _onScreenShow(id) { // existing code unchanged
   const COLORS = ['#FFB703','#22C55E','#EF4444','#3B82F6','#FF7A00','#FFFFFF'];
 
   function _spawnParticles(containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    // Elimina partículas anteriores de inmediato
-    Utils.clearElement(container);
+    // Ignoramos containerId — creamos un overlay temporal directo en body
+    // para escapar del contexto "contain: layout" de .screen, que impide
+    // que position:fixed de los hijos funcione respecto al viewport real.
+    const overlay = document.createElement('div');
+    overlay.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'width:100%',
+      'height:100%',
+      'pointer-events:none',
+      'z-index:9999',
+      'overflow:hidden',
+    ].join(';');
 
     const frag = document.createDocumentFragment();
-    const count = 24;
+    const count = 28;
 
     for (let i = 0; i < count; i++) {
       const p = document.createElement('div');
-      p.className = 'particle';
 
-      const xPct  = Math.random() * 100;           // % horizontal
-      const delay = Math.random() * 0.6;
-      const dur   = 1 + Math.random() * 1.2;
-      const size  = 4 + Math.random() * 7;
-      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      // Posición horizontal: distribuida uniformemente (0–100%)
+      const leftPct = Math.random() * 100;
+      const delay   = Math.random() * 0.7;
+      const dur     = 1.0 + Math.random() * 1.2;
+      const size    = 5 + Math.random() * 7;
+      const color   = COLORS[Math.floor(Math.random() * COLORS.length)];
       const isCircle = Math.random() > 0.5;
+      // Deriva horizontal durante la caída (–30px a +30px)
+      const drift = Math.round((Math.random() - 0.5) * 60);
 
       p.style.cssText = [
-        `background:${color}`,
+        `position:absolute`,
+        `top:-15px`,
+        `left:${leftPct}%`,
         `width:${size}px`,
         `height:${size}px`,
+        `background:${color}`,
         `border-radius:${isCircle ? '50%' : '2px'}`,
+        `will-change:transform,opacity`,
+        `animation-name:particleFall`,
+        `animation-timing-function:ease-in`,
+        `animation-fill-mode:forwards`,
         `animation-delay:${delay}s`,
         `animation-duration:${dur}s`,
-        `transform:translate3d(calc(${xPct}vw - 50%), -10px, 0)`,
-        `-webkit-transform:translate3d(calc(${xPct}vw - 50%), -10px, 0)`,
+        `--drift:${drift}px`,
       ].join(';');
 
       p.addEventListener('animationend', () => p.remove(), { once: true });
       frag.appendChild(p);
     }
 
-    container.appendChild(frag);
+    overlay.appendChild(frag);
+    document.body.appendChild(overlay);
 
-    // Limpieza de seguridad por si animationend no se dispara en segundo plano
+    // Limpieza de seguridad: elimina el overlay completo tras la animación más larga
     setTimeout(() => {
-      if (container) Utils.clearElement(container);
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
     }, 2500);
   }
 

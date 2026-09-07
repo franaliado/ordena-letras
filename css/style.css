@@ -1871,28 +1871,24 @@ body {
 /* ══════════════════════════════════════════════════════════════
    PARTÍCULAS (celebración)
    ══════════════════════════════════════════════════════════════ */
+/* .particle-container ya no se necesita como clase CSS:
+   el overlay se crea y estiliza directamente desde JS */
 .particle-container {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
-}
-
-.particle {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  /* GPU: partículas en capa propia — sin mover left/top, solo transform */
-  will-change: transform, opacity;
-  transform: translateZ(0);
-  animation: particleFall 1.5s ease forwards;
+  display: none;
 }
 
 @keyframes particleFall {
-  0%   { transform: translate3d(0, -10px, 0) rotate(0deg); opacity: 1; }
-  100% { transform: translate3d(0, 100vh, 0) rotate(720deg); opacity: 0; }
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(var(--drift, 0px), 105vh, 0) rotate(720deg);
+    opacity: 0;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════
