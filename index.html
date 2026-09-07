@@ -138,19 +138,19 @@
         <span class="hud-points-label">PUNTOS</span>
         <span class="hud-points-value" id="hud-points">0</span>
       </div>
-      <div class="hud-actions" style="display:flex; align-items:center; gap:6px;">
-        <button class="hud-hint-btn" id="btn-hint" onclick="Game.useHint()" title="Usar Pista (-100 pts)" aria-label="Pista">💡 -100</button>
-        <button class="hud-pause-btn" id="btn-pause" onclick="UI.showPause()" aria-label="Pausa">⏸</button>
-      </div>
+      <button class="hud-pause-btn" id="btn-pause" onclick="UI.showPause()" aria-label="Pausa">⏸</button>
     </div>
     <div class="game-lives-bar" id="game-lives-bar"></div>
     <div class="game-word-area">
-      <span class="game-word-label">LETRAS DESORDENADAS</span>
+      <span class="game-word-label">PALABRA DESORDENADA</span>
       <div class="scrambled-tiles" id="scrambled-tiles"></div>
       <span class="game-word-label" style="margin-top:4px;">TU RESPUESTA</span>
       <div class="answer-slots" id="answer-slots"></div>
       <div class="game-feedback">
         <span class="feedback-text" id="game-feedback-text"></span>
+      </div>
+      <div class="hint-bar" style="display:flex; justify-content:center; margin: 4px 0 2px 0;">
+        <button class="hud-hint-btn" id="btn-hint" onclick="Game.useHint()" title="Usar Pista (-100 pts)" aria-label="Pista">💡 Pista (-100 pts)</button>
       </div>
     </div>
     <div class="game-keyboard" id="game-keyboard">
