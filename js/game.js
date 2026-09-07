@@ -359,25 +359,37 @@ const Game = (() => {
   }
 
   function _handleWrongLetter(letter) {
-    // Restar 1 vida ESTRICTAMENTE dentro del bloque condicional de fallo/error
-    _state.lives = Math.max(0, _state.lives - 1);
     _state.wordErrors++;
     _state.totalErrors++;
 
-    // Los errores en letras incorrectas no quitan puntos
-
-    // Animaciones / UI
     Audio.playWrong();
-    UI.onLetterWrong(letter, _state);
 
-    // Comprobar Game Over
-    if (_state.lives <= 0) {
-      if (_gameOverTimer) clearTimeout(_gameOverTimer);
-      _gameOverTimer = setTimeout(() => {
-        _gameOverTimer = null;
-        _triggerGameOver();
-      }, 600);
+    if (_state.lives > 0) {
+      // Consume 1 vida de respaldo (los corazones representados son las vidas de respaldo)
+      _state.lives--;
+      UI.onLetterWrong(letter, _state);
+    } else {
+      // Vidas de respaldo en 0: falla su última oportunidad y pierde definitivamente
+      UI.onLetterWrong(letter, _state);
+      _revealWordAndGameOver();
     }
+  }
+
+  function _revealWordAndGameOver() {
+    if (!_state) return;
+    _state.isRunning = false;
+
+    if (_gameOverTimer) clearTimeout(_gameOverTimer);
+    _gameOverTimer = setTimeout(() => {
+      _gameOverTimer = null;
+      if (typeof UI !== 'undefined' && UI.revealWordOnLoss) {
+        UI.revealWordOnLoss(_state.currentWord, () => {
+          _triggerGameOver(false);
+        });
+      } else {
+        _triggerGameOver(false);
+      }
+    }, 400);
   }
 
   // ══════════════════════════════════════════════════════════════════════

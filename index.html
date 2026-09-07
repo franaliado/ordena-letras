@@ -306,6 +306,10 @@
           <span class="game-over-stat-label">Errores</span>
           <span class="game-over-stat-value" id="go-errors">0</span>
         </div>
+        <div class="game-over-stat-row hidden" id="go-last-word-row">
+          <span class="game-over-stat-label">Palabra no adivinada</span>
+          <span class="game-over-stat-value" style="color:var(--color-red); font-weight:800; letter-spacing:1px;" id="go-last-word">---</span>
+        </div>
       </div>
       <div class="flex-col gap-md w-full" style="margin-top:8px;">
         <button class="btn btn-primary" id="btn-play-again" onclick="Game.playAgain()">🎮 JUGAR DE NUEVO</button>
