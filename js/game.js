@@ -143,29 +143,68 @@ const Game = (() => {
 
   /**
    * Restaura la partida guardada con validación automática, prevención de
-   * estados fantasmas/bloqueos y activación de controladores de eventos.
+   * estados fantasmas/bloqueos y aseguramiento de controladores de eventos sin duplicación.
    * @param {Object} saved — Estado persistido recuperado de localStorage
    */
   function _restoreGame(saved) {
-    _state = saved;
-    _state.isRunning  = true;
-    _state.isPaused   = false;
-    _state.isGameOver = false;
+    if (!saved || typeof saved !== 'object') return;
 
-    // Cambiar a pantalla de juego y reanudar audio
+    // 1. Sanitizar y asegurar que las variables de control de vidas no se reinicien de forma defectuosa
+    const savedLives = parseInt(saved.lives, 10);
+    const lives = (!isNaN(savedLives) && savedLives >= 0)
+      ? Math.min(CONFIG.MAX_LIVES, savedLives)
+      : CONFIG.INITIAL_LIVES;
+
+    // 2. Sanitizar palabra y array de progreso de aciertos
+    const word = typeof saved.currentWord === 'string' ? saved.currentWord : '';
+    const wordLen = word.length;
+    let progress = Array.isArray(saved.answerProgress) ? [...saved.answerProgress] : [];
+    if (progress.length !== wordLen) {
+      progress = new Array(wordLen).fill(null);
+    }
+
+    // 3. Sincronizar posición actual estrictamente según los aciertos reales colocados
+    let correctCount = 0;
+    while (correctCount < wordLen && progress[correctCount] !== null && progress[correctCount] !== undefined && progress[correctCount] !== '') {
+      correctCount++;
+    }
+
+    // 4. Reconstruir estado limpio preservando aciertos, vidas y estadísticas
+    _state = {
+      ..._initialState(),
+      ...saved,
+      lives: lives,
+      currentWord: word,
+      scrambledLetters: (Array.isArray(saved.scrambledLetters) && saved.scrambledLetters.length === wordLen)
+        ? saved.scrambledLetters
+        : (wordLen > 0 && typeof Words !== 'undefined' && Words.scramble ? Words.scramble(word) : []),
+      answerProgress: progress,
+      currentPosition: correctCount,
+      wordErrors: parseInt(saved.wordErrors, 10) || 0,
+      wordPoints: parseInt(saved.wordPoints, 10) || 0,
+      totalScore: Math.max(0, parseInt(saved.totalScore, 10) || 0),
+      level: Math.max(1, parseInt(saved.level, 10) || 1),
+      wordsInLevel: parseInt(saved.wordsInLevel, 10) || 0,
+      levelPointsEarned: parseInt(saved.levelPointsEarned, 10) || 0,
+      totalWords: parseInt(saved.totalWords, 10) || 0,
+      totalErrors: parseInt(saved.totalErrors, 10) || 0,
+      maxStreak: parseInt(saved.maxStreak, 10) || 0,
+      currentStreak: parseInt(saved.currentStreak, 10) || 0,
+      wordCompleted: Boolean(saved.wordCompleted),
+      isRunning:  true,
+      isPaused:   false,
+      isGameOver: false,
+    };
+
+    // 5. Cambiar a pantalla de juego y reanudar audio
     UI.showScreen('screen-game');
     Audio.startMusic();
 
-    // Reactivar y asegurar los controladores de eventos de entrada
-    if (typeof UI.initInputHandlers === 'function') {
-      UI.initInputHandlers();
-    }
+    // 6. Control de eventos: evitar duplicación de listeners del teclado táctil o físico al restaurar.
+    // Los eventos de entrada ya quedan vinculados de forma global en el arranque de la app;
+    // marcamos el flag para evitar cualquier reinicialización o registro duplicado.
+    window._olInputHandlersInitialized = true;
 
-    const word = _state.currentWord || '';
-    const wordLen = word.length;
-    const progress = Array.isArray(_state.answerProgress) ? _state.answerProgress : [];
-
-    // Comprobar si la palabra actual ya tiene todas las letras llenas o fue completada
     const isCompletedOrFull = wordLen > 0 && (
       _state.currentPosition >= wordLen ||
       _state.wordCompleted === true ||
@@ -201,7 +240,7 @@ const Game = (() => {
       }, 100);
     } else {
       // Si la palabra está en progreso normal (incompleta), renderizar el tablero
-      // y mantener activos los controladores de eventos para seguir escribiendo
+      // y continuar jugando de forma reactiva
       UI.renderGameBoard(_state);
     }
   }
@@ -259,16 +298,32 @@ const Game = (() => {
   // MECÁNICA: PROCESAR LETRA
   // ══════════════════════════════════════════════════════════════════════
 
+  // Variables de control para descartar disparos duplicados de eventos táctiles/teclado
+  let _lastInputLetter = null;
+  let _lastInputTimestamp = 0;
+
   /**
-   * Procesa la pulsación de una tecla del teclado virtual.
+   * Procesa la pulsación de una tecla del teclado virtual o físico.
+   * Validación estricta con independencia garantizada del contador de vidas.
    * @param {string} letter — letra en mayúsculas
    */
   function pressLetter(letter) {
     if (!_state || !_state.isRunning || _state.isPaused || _state.isGameOver || _gameOverTimer) return;
+    if (_state.wordCompleted) return;
     if (_state.currentPosition >= _state.currentWord.length) return;
+
+    // Descartar eventos duplicados inmediatos (mismo carácter en menos de 80ms)
+    // para evitar que rebotes táctiles o listeners duplicados procesen la letra dos veces
+    const now = Date.now();
+    if (letter === _lastInputLetter && (now - _lastInputTimestamp) < 80) {
+      return;
+    }
+    _lastInputLetter = letter;
+    _lastInputTimestamp = now;
 
     const expected = _state.currentWord[_state.currentPosition];
 
+    // Validación estricta: acierto vs error
     if (letter === expected) {
       _handleCorrectLetter(letter);
     } else {
@@ -288,11 +343,14 @@ const Game = (() => {
     _state.wordPoints += pts;
     _state.totalScore += pts;
 
-    // Animaciones / UI
+    // Animaciones / UI (las vidas permanecen estrictamente intactas en los aciertos)
     Audio.playCorrect();
     UI.onLetterCorrect(pos, letter, _state);
+
     // Guardar estado tras letra correcta
-    Storage.saveGameState(_state);
+    if (typeof Storage !== 'undefined' && Storage.saveGameState) {
+      Storage.saveGameState(_state);
+    }
 
     // Comprobar si la palabra está completa
     if (_state.currentPosition === _state.currentWord.length) {
@@ -301,7 +359,7 @@ const Game = (() => {
   }
 
   function _handleWrongLetter(letter) {
-    // Restar 1 vida
+    // Restar 1 vida ESTRICTAMENTE dentro del bloque condicional de fallo/error
     _state.lives = Math.max(0, _state.lives - 1);
     _state.wordErrors++;
     _state.totalErrors++;
