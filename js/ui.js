@@ -745,20 +745,25 @@ function _onScreenShow(id) { // existing code unchanged
   /**
    * TOP 10: Única aparición por jugador.
    * Filtra registros para que cada jugador aparezca una sola vez,
-   * reflejando estrictamente su puntuación máxima histórica y descartando las menores.
+   * reflejando estrictamente su puntuación máxima histórica y descartando las menores y duplicados.
    */
   function _getTop10UniquePlayers(records) {
     if (!Array.isArray(records)) return [];
     // Ordenar de mayor a menor puntuación por seguridad
-    const sorted = [...records].sort((a, b) => (b.score || 0) - (a.score || 0));
+    const sorted = [...records].sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
     const seenPlayers = new Set();
     const topUnique = [];
 
     for (const rec of sorted) {
-      const nameKey = (rec.name || 'Jugador').trim().toLowerCase();
-      if (!seenPlayers.has(nameKey)) {
+      const rawName = rec && (rec.name || rec.player_name || rec.playerName || 'Jugador');
+      const cleanName = String(rawName).trim();
+      const nameKey = cleanName.toLowerCase().replace(/\s+/g, ' ');
+      if (nameKey && !seenPlayers.has(nameKey)) {
         seenPlayers.add(nameKey);
-        topUnique.push(rec);
+        topUnique.push({
+          ...rec,
+          name: cleanName
+        });
         if (topUnique.length === 10) break;
       }
     }
@@ -766,17 +771,16 @@ function _onScreenShow(id) { // existing code unchanged
   }
 
   /**
-   * PERSONAL: Historial del usuario limpio sin puntuaciones idénticas duplicadas innecesarias.
-   * Si existen puntuaciones idénticas repetidas, se agrupan/deduplican.
+   * PERSONAL: Historial del usuario con su máxima puntuación histórica única.
    */
   function _deduplicatePersonalRecords(records) {
     if (!Array.isArray(records)) return [];
-    const sorted = [...records].sort((a, b) => (b.score || 0) - (a.score || 0));
+    const sorted = [...records].sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
     const seenScores = new Set();
     const unique = [];
 
     for (const rec of sorted) {
-      const scoreKey = rec.score || 0;
+      const scoreKey = Number(rec.score) || 0;
       if (!seenScores.has(scoreKey)) {
         seenScores.add(scoreKey);
         unique.push(rec);
@@ -960,64 +964,8 @@ function _onScreenShow(id) { // existing code unchanged
   const COLORS = ['#FFB703','#22C55E','#EF4444','#3B82F6','#FF7A00','#FFFFFF'];
 
   function _spawnParticles(containerId) {
-    // Ignoramos containerId — creamos un overlay temporal directo en body
-    // para escapar del contexto "contain: layout" de .screen, que impide
-    // que position:fixed de los hijos funcione respecto al viewport real.
-    const overlay = document.createElement('div');
-    overlay.style.cssText = [
-      'position:fixed',
-      'inset:0',
-      'width:100%',
-      'height:100%',
-      'pointer-events:none',
-      'z-index:9999',
-      'overflow:hidden',
-    ].join(';');
-
-    const frag = document.createDocumentFragment();
-    const count = 28;
-
-    for (let i = 0; i < count; i++) {
-      const p = document.createElement('div');
-
-      // Posición horizontal: distribuida uniformemente (0–100%)
-      const leftPct = Math.random() * 100;
-      const delay   = Math.random() * 0.7;
-      const dur     = 1.0 + Math.random() * 1.2;
-      const size    = 5 + Math.random() * 7;
-      const color   = COLORS[Math.floor(Math.random() * COLORS.length)];
-      const isCircle = Math.random() > 0.5;
-      // Deriva horizontal durante la caída (–30px a +30px)
-      const drift = Math.round((Math.random() - 0.5) * 60);
-
-      p.style.cssText = [
-        `position:absolute`,
-        `top:-15px`,
-        `left:${leftPct}%`,
-        `width:${size}px`,
-        `height:${size}px`,
-        `background:${color}`,
-        `border-radius:${isCircle ? '50%' : '2px'}`,
-        `will-change:transform,opacity`,
-        `animation-name:particleFall`,
-        `animation-timing-function:ease-in`,
-        `animation-fill-mode:forwards`,
-        `animation-delay:${delay}s`,
-        `animation-duration:${dur}s`,
-        `--drift:${drift}px`,
-      ].join(';');
-
-      p.addEventListener('animationend', () => p.remove(), { once: true });
-      frag.appendChild(p);
-    }
-
-    overlay.appendChild(frag);
-    document.body.appendChild(overlay);
-
-    // Limpieza de seguridad: elimina el overlay completo tras la animación más larga
-    setTimeout(() => {
-      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-    }, 2500);
+    // Animación de partículas eliminada por completo para que la pantalla quede limpia y sin elementos rotos
+    return;
   }
 
   // ══════════════════════════════════════════════════════════════════════

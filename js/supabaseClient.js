@@ -194,10 +194,17 @@ const SupabaseClient = (() => {
       }
 
       const formatted = (data || []).map(row => {
-        const pName = row.players && row.players.player_name ? row.players.player_name : 'JUGADOR';
+        let pName = 'JUGADOR';
+        if (row.players) {
+          if (Array.isArray(row.players) && row.players.length > 0) {
+            pName = row.players[0].player_name || 'JUGADOR';
+          } else if (typeof row.players === 'object' && row.players.player_name) {
+            pName = row.players.player_name;
+          }
+        }
         return {
           name: pName,
-          score: row.score || 0,
+          score: Number(row.score) || 0,
           maxLevel: row.max_level || 1,
           date: row.created_at ? new Date(row.created_at).toLocaleDateString('es-ES') : '',
         };
@@ -207,10 +214,14 @@ const SupabaseClient = (() => {
       const seenPlayers = new Set();
       const topPlayersOnly = [];
       for (const rec of formatted) {
-        const key = (rec.name || 'JUGADOR').trim().toLowerCase();
-        if (!seenPlayers.has(key)) {
+        const cleanName = (rec.name || 'JUGADOR').trim();
+        const key = cleanName.toLowerCase().replace(/\s+/g, ' ');
+        if (key && !seenPlayers.has(key)) {
           seenPlayers.add(key);
-          topPlayersOnly.push(rec);
+          topPlayersOnly.push({
+            ...rec,
+            name: cleanName
+          });
           if (topPlayersOnly.length === limit) break;
         }
       }
