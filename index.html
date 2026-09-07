@@ -138,7 +138,10 @@
         <span class="hud-points-label">PUNTOS</span>
         <span class="hud-points-value" id="hud-points">0</span>
       </div>
-      <button class="hud-pause-btn" id="btn-pause" onclick="UI.showPause()" aria-label="Pausa">⏸</button>
+      <div class="hud-actions" style="display:flex; align-items:center; gap:6px;">
+        <button class="hud-hint-btn" id="btn-hint" onclick="Game.useHint()" title="Usar Pista (-100 pts)" aria-label="Pista">💡 -100</button>
+        <button class="hud-pause-btn" id="btn-pause" onclick="UI.showPause()" aria-label="Pausa">⏸</button>
+      </div>
     </div>
     <div class="game-lives-bar" id="game-lives-bar"></div>
     <div class="game-word-area">
@@ -428,6 +431,15 @@
             - 7 a 8 letras: hasta 1 error.<br>
             - 9 a 10 letras: hasta 2 errores.<br>
             - 11 a 12 letras: hasta 3 errores.
+        </p>
+      </div>
+      <div class="help-item">
+        <h3 style="color:var(--color-gold); font-size:var(--fs-md); font-weight:800; margin-bottom:4px;">💡 PISTAS / AYUDA</h3>
+        <p style="font-size:var(--fs-sm); color:var(--color-text-dim); line-height:1.4;">
+          • Pulsa el botón <strong>💡 -100</strong> para revelar la siguiente letra correcta.<br>
+          • <strong>Costo:</strong> Resta exactamente <strong>100 puntos</strong> de tu puntuación actual.<br>
+          • <strong>Requisito:</strong> Debes contar con al menos <strong>100 puntos</strong> acumulados.<br>
+          • <strong>Límite:</strong> Máximo <strong>1 pista por palabra</strong>.
         </p>
       </div>
     </div>

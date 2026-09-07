@@ -320,6 +320,31 @@ function _onScreenShow(id) { // existing code unchanged
     if (el.level)    el.level.textContent    = `${state.level}`;
     if (el.progress) el.progress.textContent = `${state.wordsInLevel}/${Game.getConfig().WORDS_PER_LEVEL}`;
     if (el.points)   el.points.textContent   = Utils.formatScore(state.totalScore);
+    updateHintButtonState(state);
+  }
+
+  function updateHintButtonState(state) {
+    const hintBtn = document.getElementById('btn-hint');
+    if (!hintBtn || !state) return;
+
+    const canUse = (state.totalScore >= 100) && (!state.hintUsedInWord) && state.isRunning && (!state.wordCompleted);
+    hintBtn.disabled = !canUse;
+
+    if (state.hintUsedInWord) {
+      hintBtn.classList.add('used');
+      hintBtn.setAttribute('title', 'Pista ya usada en esta palabra');
+    } else if (state.totalScore < 100) {
+      hintBtn.classList.remove('used');
+      hintBtn.setAttribute('title', 'Requiere al menos 100 puntos');
+    } else {
+      hintBtn.classList.remove('used');
+      hintBtn.setAttribute('title', 'Usar Pista (-100 pts)');
+    }
+  }
+
+  function showHintFeedback(text) {
+    const ptsEl = document.getElementById('hud-points') || document.getElementById('btn-hint');
+    _showFloatingPoints(text || '-100 💡', ptsEl, 'negative');
   }
 
   function _renderLives(lives, maxLives) {
@@ -1169,6 +1194,8 @@ function _onScreenShow(id) { // existing code unchanged
     confirmResetData,
     showHelp,
     showToast,
+    updateHintButtonState,
+    showHintFeedback,
     initInputHandlers,
     initHistory  };
 

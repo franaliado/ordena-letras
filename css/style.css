@@ -930,6 +930,44 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
 
+.hud-hint-btn {
+  background: rgba(255, 183, 3, 0.15);
+  border: 1.5px solid rgba(255, 183, 3, 0.5);
+  color: var(--color-gold);
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  border-radius: var(--r-md);
+  padding: 4px 10px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  transition: all var(--t-fast);
+  user-select: none;
+  flex-shrink: 0;
+}
+.hud-hint-btn:hover:not(:disabled) {
+  background: rgba(255, 183, 3, 0.3);
+  border-color: var(--color-gold);
+  box-shadow: 0 0 10px rgba(255,183,3,0.4);
+  transform: scale(1.05);
+}
+.hud-hint-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+.hud-hint-btn:disabled,
+.hud-hint-btn.used {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: var(--color-text-dim);
+  box-shadow: none;
+  transform: none;
+}
+
 /* Vidas */
 .game-lives-bar {
   width: 100%;

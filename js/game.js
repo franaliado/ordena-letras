@@ -111,6 +111,7 @@ const Game = (() => {
       wordErrors:      0,     // errores cometidos en esta palabra
       wordPoints:      0,     // puntos acumulados en esta palabra
       wordCompleted:   false, // indica si la palabra actual ya fue completada/validada
+      hintUsedInWord:  false, // indica si ya se usó la pista en la palabra actual
     };
   }
 
@@ -290,8 +291,48 @@ const Game = (() => {
     _state.wordErrors       = 0;
     _state.wordPoints       = 0;
     _state.wordCompleted    = false;
+    _state.hintUsedInWord   = false;
 
     UI.renderGameBoard(_state);
+  }
+
+  /**
+   * Pista de ayuda: Revela la siguiente letra correcta a cambio de 100 puntos.
+   * Requisitos: saldo >= 100 puntos y máx. 1 pista por palabra.
+   */
+  function useHint() {
+    if (!_state || !_state.isRunning || _state.isPaused || _state.isGameOver || _state.wordCompleted) return;
+
+    if (_state.totalScore < 100) {
+      if (typeof UI !== 'undefined' && UI.showToast) {
+        UI.showToast('⚠️ Requieres al menos 100 puntos para usar la ayuda.');
+      }
+      return;
+    }
+
+    if (_state.hintUsedInWord) {
+      if (typeof UI !== 'undefined' && UI.showToast) {
+        UI.showToast('⚠️ Ya usaste 1 ayuda para esta palabra.');
+      }
+      return;
+    }
+
+    // Restar 100 puntos y bloquear más pistas para esta palabra
+    _state.totalScore = Math.max(0, _state.totalScore - 100);
+    _state.hintUsedInWord = true;
+
+    Audio.playButton();
+
+    if (typeof UI !== 'undefined') {
+      if (UI.showHintFeedback) UI.showHintFeedback('-100 💡');
+      if (UI.updateHintButtonState) UI.updateHintButtonState(_state);
+    }
+
+    // Revelar la siguiente letra correcta en su posición
+    const expected = _state.currentWord[_state.currentPosition];
+    if (expected) {
+      _handleCorrectLetter(expected);
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -625,6 +666,7 @@ const Game = (() => {
     startGame,
     launchAfterName,
     pressLetter,
+    useHint,
     nextWord,
     startNextLevel,
     resume,
