@@ -931,35 +931,38 @@ body {
 }
 
 .hud-hint-btn {
-  background: rgba(30, 41, 59, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: var(--color-gold);
-  font-size: 0.72rem;
+  background: linear-gradient(135deg, #1e3a5f 0%, #1d2d50 100%);
+  border: 1.5px solid rgba(99, 179, 237, 0.55);
+  color: #e2f0fb;
+  font-size: 0.8rem;
   font-weight: 700;
   border-radius: var(--r-full);
-  padding: 3px 12px;
-  height: 28px;
+  padding: 7px 20px;
+  height: auto;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  gap: 6px;
+  box-shadow: 0 0 12px rgba(66, 153, 225, 0.35), 0 3px 8px rgba(0, 0, 0, 0.35);
   transition: all var(--t-fast);
   user-select: none;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  letter-spacing: 0.03em;
 }
 .hud-hint-btn:hover:not(:disabled) {
-  background: rgba(30, 41, 59, 0.9);
-  border-color: rgba(255, 183, 3, 0.4);
-  color: #FFC107;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #2a5298 0%, #1e3a5f 100%);
+  border-color: rgba(99, 179, 237, 0.9);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(66, 153, 225, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
 }
 .hud-hint-btn:active:not(:disabled) {
   transform: translateY(0) scale(0.97);
+  box-shadow: 0 0 8px rgba(66, 153, 225, 0.3);
 }
 .hud-hint-btn:disabled,
 .hud-hint-btn.used {
-  opacity: 0.35;
+  opacity: 0.3;
   cursor: not-allowed;
   background: rgba(15, 23, 42, 0.4);
   border-color: rgba(255, 255, 255, 0.06);
@@ -969,8 +972,8 @@ body {
 }
 
 .hint-bar {
-  margin-top: 28px;
-  margin-bottom: 6px;
+  margin-top: 44px;
+  margin-bottom: 8px;
 }
 
 /* Vidas */
