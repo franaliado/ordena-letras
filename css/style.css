@@ -218,17 +218,42 @@ body {
 }
 
 /* Botones RÉCORDS, AJUSTES, AYUDA (Azul Arcade 3D) */
-.btn-blue {
-  background: linear-gradient(180deg, #3B82F6 0%, var(--color-blue) 50%, #1D4ED8 100%);
-  color: var(--color-white);
+.btn-blue,
+#btn-help {
+  background: linear-gradient(180deg, #3B82F6 0%, var(--color-blue) 50%, #1D4ED8 100%) !important;
+  color: var(--color-white) !important;
   box-shadow: 0 5px 0 #1E3A8A, 0 8px 18px rgba(0,0,0,0.4);
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
-.btn-blue:hover {
+.btn-blue:hover,
+#btn-help:hover {
   filter: brightness(1.08);
 }
-.btn-blue:active {
+.btn-blue:active,
+#btn-help:active {
   box-shadow: 0 1px 0 #1E3A8A, 0 3px 8px rgba(0,0,0,0.3);
+}
+
+/* Icono circular de AYUDA con diseño azul Arcade */
+#icon-help,
+.menu-icon-blue {
+  background: linear-gradient(180deg, #3B82F6 0%, var(--color-blue) 50%, #1D4ED8 100%) !important;
+  border: 2px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 4px 0 #1E3A8A, 0 6px 14px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255,255,255,0.3) !important;
+  color: #FFFFFF !important;
+}
+
+#icon-help:hover,
+.menu-icon-blue:hover {
+  border-color: #FFFFFF !important;
+  box-shadow: 0 4px 0 #1E3A8A, 0 0 16px rgba(59, 130, 246, 0.7) !important;
+  filter: brightness(1.1);
+}
+
+#icon-help:active,
+.menu-icon-blue:active {
+  transform: translate3d(0, 3px, 0);
+  box-shadow: 0 1px 0 #1E3A8A, 0 2px 6px rgba(0,0,0,0.3) !important;
 }
 
 /* Botón CONTINUAR (Verde 3D) */
@@ -1956,21 +1981,70 @@ body {
   pointer-events: all;
 }
 
+/* ══════════════════════════════════════════════════════════════
+   PANTALLA 12 — AYUDA (Scroll vertical fluido y sin recortes)
+   ══════════════════════════════════════════════════════════════ */
+#screen-help {
+  justify-content: flex-start;
+  align-items: center;
+  gap: var(--gap-md);
+  padding: var(--gap-md) var(--gap-md) max(54px, calc(28px + var(--safe-bottom) + 28px));
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.4) transparent;
+}
+
+#screen-help::-webkit-scrollbar {
+  display: block;
+  width: 5px;
+}
+
+#screen-help::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 4px;
+}
+
 .help-card {
   display: flex;
   flex-direction: column;
   gap: var(--gap-md);
   padding: var(--gap-lg);
-  overflow-y: auto;
+  padding-bottom: clamp(30px, 5vh, 45px);
+  overflow-y: auto !important;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
   max-width: 440px;
   width: 100%;
+  margin-bottom: var(--gap-xl);
+  flex-shrink: 0;
+  contain: none !important;
+  box-sizing: border-box;
 }
 
 .help-item {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  width: 100%;
+}
+
+.help-item h3 {
+  font-size: var(--fs-md);
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.help-item p {
+  font-size: var(--fs-sm);
+  color: var(--color-text-dim);
+  line-height: 1.45;
+  word-break: break-word;
 }
 
 .difficulty-sheet {
