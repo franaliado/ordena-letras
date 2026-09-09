@@ -1,16 +1,17 @@
 {
+  "name": "ordenaletras",
+  "version": "1.0.0",
+  "description": "Juego móvil OrdenaLetras",
+  "main": "sw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:apk": "node scripts/sync-web.js && npx cap sync android && cd android && gradlew.bat assembleDebug"
+  },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
     "@capacitor/cli": "^8.5.1",
     "@capacitor/core": "^8.5.1",
     "@supabase/supabase-js": "^2.115.0"
-  },
-  "name": "ordenaletras",
-  "version": "1.0.0",
-  "description": "**Versión:** 1.0   **Plataforma objetivo:** Android (APK via MIT App Inventor + WebViewer)   **Lenguaje del juego:** Español (sin tildes ni Ñ en las palabras del diccionario)",
-  "main": "sw.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
