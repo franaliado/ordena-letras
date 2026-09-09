@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const www = path.join(root, 'www');
+const target = path.join(root, 'android', 'app', 'src', 'main', 'assets', 'public');
 
 const exclude = new Set([
   'android',
@@ -37,19 +37,23 @@ function copyRecursive(source, destination) {
   }
 }
 
-console.log('Limpiando www...');
-fs.rmSync(www, { recursive: true, force: true });
-fs.mkdirSync(www, { recursive: true });
+console.log('Actualizando archivos en Android directamente...');
 
-console.log('Copiando archivos actuales del juego...');
+fs.mkdirSync(target, { recursive: true });
 
 for (const item of fs.readdirSync(root)) {
   if (exclude.has(item)) continue;
 
   copyRecursive(
     path.join(root, item),
-    path.join(www, item)
+    path.join(target, item)
   );
 }
 
-console.log('Sincronizando Capacitor...');
+// Copiar el puente de Capacitor necesario para Android
+const capCorePath = path.join(root, 'node_modules', '@capacitor', 'core', 'dist', 'capacitor.js');
+if (fs.existsSync(capCorePath)) {
+  fs.copyFileSync(capCorePath, path.join(target, 'capacitor.js'));
+}
+
+console.log('Sincronización completada.');
