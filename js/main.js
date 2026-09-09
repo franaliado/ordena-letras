@@ -63,15 +63,15 @@
   // ── 6.1. Integración del botón físico de retroceso (Android / Capacitor) ──
   if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
     window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
-      // Si hay modales o pantallas secundarias abiertas, ciérralas primero
-      const activeModal = document.querySelector('.screen.active');
-      
-      // Si estamos en el menú principal, salir de la app
-      if (!activeModal || activeModal.id === 'screen-menu') {
-        window.Capacitor.Plugins.App.exitApp();
-      } else {
-        // De lo contrario, usar el historial de navegación para volver atrás
+      if (canGoBack && window.location.hash && window.location.hash !== '#screen-menu') {
         window.history.back();
+      } else {
+        const activeScreen = document.querySelector('.screen.active');
+        if (activeScreen && activeScreen.id !== 'screen-menu') {
+          UI.showScreen('screen-menu', true);
+        } else {
+          window.Capacitor.Plugins.App.exitApp();
+        }
       }
     });
   }
