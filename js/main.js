@@ -60,6 +60,22 @@
   UI.initHistory();
   UI.showScreen('screen-menu', false);
 
+  // ── 6.1. Integración del botón físico de retroceso (Android / Capacitor) ──
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+    window.Capacitor.Plugins.App.addListener('backButton', ({ canGoBack }) => {
+      // Si hay modales o pantallas secundarias abiertas, ciérralas primero
+      const activeModal = document.querySelector('.screen.active');
+      
+      // Si estamos en el menú principal, salir de la app
+      if (!activeModal || activeModal.id === 'screen-menu') {
+        window.Capacitor.Plugins.App.exitApp();
+      } else {
+        // De lo contrario, usar el historial de navegación para volver atrás
+        window.history.back();
+      }
+    });
+  }
+
   // ── 7. Conectar teclado virtual (botones .key) ────────────────────────────────────
   // Usamos 'pointerdown' en vez de 'click' para eliminar el delay de 300ms
   // en Android WebView / Capacitor. El evento se dispara inmediatamente.
