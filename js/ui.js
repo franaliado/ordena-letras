@@ -667,6 +667,17 @@ function _onScreenShow(id) { // existing code unchanged
   // ══════════════════════════════════════════════════════════════════════
 
   function showGameOver(state, isNewRecord, isVictory) {
+    // Limpiar inmediatamente el feedback de la pantalla de juego ("❌ -1 VIDA")
+    // y cualquier punto flotante visible, para evitar que se perciban como
+    // un aviso intermedio durante la transición a la pantalla de resumen.
+    const fbEl = document.getElementById('game-feedback-text');
+    if (fbEl) {
+      fbEl.className = 'feedback-text';
+      fbEl.textContent = '';
+    }
+    // Eliminar puntos flotantes y confetti del DOM en vuelo
+    document.querySelectorAll('.floating-points, .confetti-celebration-overlay').forEach(el => el.remove());
+
     const bestScore = Storage.getBestScore();
 
     const scoreEl  = document.getElementById('go-score');

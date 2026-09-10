@@ -1739,32 +1739,40 @@ body {
    PANTALLA 9 — GAME OVER
    ══════════════════════════════════════════════════════════════ */
 #screen-game-over {
-  justify-content: space-between;
+  /* La pantalla NO hace scroll: la tarjeta debe expandirse para llenar
+     exactamente el espacio disponible hasta la barra de navegación Android */
+  justify-content: stretch;
   align-items: center;
-  padding: clamp(10px, 2vh, 18px) var(--gap-md) max(14px, var(--safe-bottom));
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  /* padding-bottom respeta safe-area-inset-bottom para que el botón MENÚ
+     quede justo encima de la barra del sistema sin solapamiento ni hueco */
+  padding: clamp(8px, 1.5vh, 14px) var(--gap-md)
+           max(20px, calc(14px + var(--safe-bottom)));
+  overflow: hidden;
 }
 
 .game-over-card {
   width: 100%;
   max-width: 420px;
-  min-height: 100%;
+  /* flex: 1 + align-self: stretch garantiza que la tarjeta llene
+     toda la altura disponible sin dejar espacio negro debajo */
   flex: 1;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(8px, 1.6vh, 14px);
-  padding: clamp(14px, 2.2vh, 22px) clamp(14px, 3.5vw, 22px);
+  gap: clamp(6px, 1.4vh, 12px);
+  padding: clamp(12px, 2vh, 20px) clamp(14px, 3.5vw, 22px)
+           clamp(12px, 2vh, 20px);
   margin: 0;
   box-sizing: border-box;
   animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .game-over-icon {
-  font-size: clamp(2.4rem, 5.5vh, 3.6rem);
+  font-size: clamp(2.2rem, 5vh, 3.2rem);
   line-height: 1;
+  flex-shrink: 0;
   animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
@@ -1775,33 +1783,38 @@ body {
 }
 
 .game-over-title {
-  font-size: clamp(1.5rem, 3.4vh, 2rem);
+  font-size: clamp(1.4rem, 3.2vh, 1.9rem);
   font-weight: 900;
-  color: var(--color-primary);
+  color: var(--color-white);
   text-shadow: 0 0 24px rgba(67, 97, 238, 0.5);
   letter-spacing: 0.04em;
   text-align: center;
   line-height: 1.15;
+  flex-shrink: 0;
 }
 
 .game-over-stats {
   width: 100%;
+  /* flex: 1 hace que la sección de estadísticas ocupe todo el espacio
+     vertical disponible entre el título y los botones */
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-  gap: clamp(4px, 1vh, 8px);
-  margin: clamp(4px, 1vh, 10px) 0;
+  gap: clamp(3px, 0.8vh, 7px);
+  margin: clamp(2px, 0.6vh, 8px) 0;
+  min-height: 0;
 }
 
 .game-over-stat-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: clamp(6px, 1.2vh, 10px) var(--gap-md);
+  padding: clamp(7px, 1.4vh, 11px) var(--gap-md);
   background: rgba(255,255,255,0.04);
   border-radius: var(--r-sm);
   font-size: var(--fs-sm);
+  flex-shrink: 0;
 }
 
 .game-over-stat-label {
@@ -1820,13 +1833,14 @@ body {
 .game-over-stat-value.gold { color: var(--color-gold); }
 .game-over-stat-value.green { color: var(--color-green); }
 
-/* Fila de palabra no adivinada en dos líneas compactas para no desbordar */
+/* Fila de "Palabra no adivinada": columna para acomodar la palabra
+   en 2 líneas si es larga, evitando desbordamientos laterales */
 .game-over-stat-row-col {
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding: clamp(6px, 1.1vh, 9px) var(--gap-sm);
+  padding: clamp(7px, 1.3vh, 11px) var(--gap-sm);
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.25);
   text-align: center;
@@ -1838,17 +1852,21 @@ body {
   opacity: 0.9;
 }
 
+/* La palabra no adivinada permite salto de línea natural para palabras largas */
 .game-over-stat-value.word-highlight {
   color: var(--color-red);
-  font-size: clamp(1.05rem, 2.4vh, 1.35rem);
+  font-size: clamp(1rem, 2.3vh, 1.3rem);
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  word-break: break-all;
+  /* Salto automático en palabras largas: primero por espacios/guiones,
+     luego fuerza el corte carácter a carácter si sigue sin caber */
+  word-break: break-word;
   overflow-wrap: break-word;
   white-space: normal;
   max-width: 100%;
-  line-height: 1.2;
+  line-height: 1.25;
+  text-align: center;
 }
 
 .game-over-new-record {
@@ -1858,6 +1876,7 @@ body {
   display: flex;
   align-items: center;
   gap: var(--gap-sm);
+  flex-shrink: 0;
   animation: pulse 1s ease-in-out infinite;
 }
 
@@ -1866,7 +1885,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: clamp(8px, 1.2vh, 10px);
+  /* margin-top: auto empuja los botones al fondo de la tarjeta */
   margin-top: auto;
+  flex-shrink: 0;
 }
 
 .game-over-actions .btn {
