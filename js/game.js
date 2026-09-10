@@ -410,21 +410,10 @@ const Game = (() => {
       _state.lives--;
       UI.onLetterWrong(letter, _state);
     } else {
-      // Vidas de respaldo en 0: falla su última oportunidad y pierde definitivamente
+      // Vidas de respaldo en 0: falla su última oportunidad y pasa directo a Game Over
       UI.onLetterWrong(letter, _state);
-      _revealWordAndGameOver();
-    }
-  }
-
-  function _revealWordAndGameOver() {
-    if (!_state) return;
-    _state.isRunning = false;
-
-    if (_gameOverTimer) clearTimeout(_gameOverTimer);
-    _gameOverTimer = setTimeout(() => {
-      _gameOverTimer = null;
       _triggerGameOver(false);
-    }, 400);
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════

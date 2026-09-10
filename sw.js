@@ -3,7 +3,7 @@
  * Permite funcionamiento offline (caché de recursos estáticos).
  */
 
-const CACHE_NAME = 'ordenaletras-v5';
+const CACHE_NAME = 'ordenaletras-v6';
 
 const ASSETS_TO_CACHE = [
   './',

@@ -724,27 +724,6 @@ function _onScreenShow(id) { // existing code unchanged
     if (isVictory || isNewRecord) _spawnParticles('toast-container');
   }
 
-  function revealWordOnLoss(word, callback) {
-    if (!word) {
-      if (typeof callback === 'function') callback();
-      return;
-    }
-
-    // Revelar letras completas en los slots del tablero de juego
-    const tilesContainer = document.getElementById('word-tiles');
-    if (tilesContainer) {
-      Utils.clearElement(tilesContainer);
-      for (let i = 0; i < word.length; i++) {
-        const tile = Utils.createElement('div', 'tile tile-filled', word[i].toUpperCase());
-        tile.style.borderColor = 'var(--color-red)';
-        tile.style.color = '#EF4444';
-        tile.style.background = 'rgba(239, 68, 68, 0.15)';
-        tilesContainer.appendChild(tile);
-      }
-    // Callback inmediato sin pop-up ni modales flotantes
-    if (typeof callback === 'function') callback();
-  }
-
   // ══════════════════════════════════════════════════════════════════════
   // PANTALLA: RÉCORDS (Conexión Supabase para TOP 10 Global)
   // ══════════════════════════════════════════════════════════════════════
@@ -1143,7 +1122,6 @@ function _onScreenShow(id) { // existing code unchanged
     showLevelComplete,
     showPause,
     showGameOver,
-    revealWordOnLoss,
     renderRecords,
     switchRecordsTab,
     highlightMyPosition,
