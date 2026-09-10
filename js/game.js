@@ -423,13 +423,7 @@ const Game = (() => {
     if (_gameOverTimer) clearTimeout(_gameOverTimer);
     _gameOverTimer = setTimeout(() => {
       _gameOverTimer = null;
-      if (typeof UI !== 'undefined' && UI.revealWordOnLoss) {
-        UI.revealWordOnLoss(_state.currentWord, () => {
-          _triggerGameOver(false);
-        });
-      } else {
-        _triggerGameOver(false);
-      }
+      _triggerGameOver(false);
     }, 400);
   }
 

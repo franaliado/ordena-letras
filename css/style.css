@@ -1739,9 +1739,9 @@ body {
    PANTALLA 9 — GAME OVER
    ══════════════════════════════════════════════════════════════ */
 #screen-game-over {
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  padding: var(--gap-sm) var(--gap-md) max(36px, calc(20px + var(--safe-bottom)));
+  padding: clamp(8px, 1.5vh, 16px) var(--gap-md) max(32px, calc(16px + var(--safe-bottom)));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -1752,14 +1752,14 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(8px, 1.5vh, 14px);
-  padding: clamp(14px, 2.5vh, 24px) clamp(14px, 3vw, 24px);
+  gap: clamp(6px, 1.1vh, 10px);
+  padding: clamp(10px, 1.8vh, 18px) clamp(12px, 3vw, 20px);
   margin: auto 0;
   animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .game-over-icon {
-  font-size: clamp(2.6rem, 6vh, 4rem);
+  font-size: clamp(2rem, 4.5vh, 3.2rem);
   line-height: 1;
   animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
@@ -1771,26 +1771,27 @@ body {
 }
 
 .game-over-title {
-  font-size: clamp(1.6rem, 4vh, 2.2rem);
+  font-size: clamp(1.3rem, 3vh, 1.75rem);
   font-weight: 900;
   color: var(--color-primary);
   text-shadow: 0 0 24px rgba(67, 97, 238, 0.5);
   letter-spacing: 0.04em;
   text-align: center;
+  line-height: 1.15;
 }
 
 .game-over-stats {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--gap-sm);
+  gap: clamp(4px, 0.7vh, 6px);
 }
 
 .game-over-stat-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px var(--gap-md);
+  padding: clamp(5px, 0.9vh, 7px) var(--gap-md);
   background: rgba(255,255,255,0.04);
   border-radius: var(--r-sm);
   font-size: var(--fs-sm);
@@ -1813,13 +1814,26 @@ body {
 .game-over-stat-value.green { color: var(--color-green); }
 
 .game-over-new-record {
-  font-size: var(--fs-md);
+  font-size: var(--fs-sm);
   font-weight: 800;
   color: var(--color-gold);
   display: flex;
   align-items: center;
   gap: var(--gap-sm);
   animation: pulse 1s ease-in-out infinite;
+}
+
+.game-over-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1vh, 8px);
+  margin-top: 4px;
+}
+
+.game-over-actions .btn {
+  padding: clamp(10px, 1.5vh, 13px) 20px;
+  font-size: clamp(0.95rem, 2vh, 1.05rem);
 }
 
 /* ══════════════════════════════════════════════════════════════

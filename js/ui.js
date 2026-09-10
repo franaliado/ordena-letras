@@ -741,50 +741,8 @@ function _onScreenShow(id) { // existing code unchanged
         tile.style.background = 'rgba(239, 68, 68, 0.15)';
         tilesContainer.appendChild(tile);
       }
-    }
-
-    // Toast flotante elegante para mostrar la palabra
-    const toast = document.createElement('div');
-    toast.className = 'word-reveal-modal';
-    toast.style.cssText = [
-      'position: fixed',
-      'top: 50%',
-      'left: 50%',
-      'transform: translate(-50%, -50%) scale(0.8)',
-      'background: rgba(15, 23, 42, 0.96)',
-      'border: 2px solid #EF4444',
-      'box-shadow: 0 10px 40px rgba(0,0,0,0.7), 0 0 20px rgba(239, 68, 68, 0.3)',
-      'padding: var(--gap-xl) var(--gap-xxl)',
-      'border-radius: var(--r-xl)',
-      'color: #FFFFFF',
-      'text-align: center',
-      'z-index: 100000',
-      'opacity: 0',
-      'transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-      'min-width: 280px',
-    ].join(';');
-
-    toast.innerHTML = `
-      <div style="font-size: var(--fs-xs); color: var(--color-text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">Oportunidades Agotadas</div>
-      <div style="font-size: var(--fs-sm); font-weight: 700; color: #EF4444; margin-bottom: 8px;">La palabra correcta era:</div>
-      <div style="font-size: var(--fs-xxl); font-weight: 900; letter-spacing: 5px; color: #FFB703; text-shadow: 0 2px 10px rgba(255,183,3,0.3); margin-bottom: 4px;">${word.toUpperCase()}</div>
-    `;
-
-    document.body.appendChild(toast);
-
-    requestAnimationFrame(() => {
-      toast.style.opacity = '1';
-      toast.style.transform = 'translate(-50%, -50%) scale(1)';
-    });
-
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translate(-50%, -50%) scale(0.9)';
-      setTimeout(() => {
-        if (toast.parentNode) toast.parentNode.removeChild(toast);
-        if (typeof callback === 'function') callback();
-      }, 300);
-    }, 2200);
+    // Callback inmediato sin pop-up ni modales flotantes
+    if (typeof callback === 'function') callback();
   }
 
   // ══════════════════════════════════════════════════════════════════════
