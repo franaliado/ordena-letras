@@ -1482,42 +1482,58 @@ body {
    PANTALLA 7 — PAUSA
    ══════════════════════════════════════════════════════════════ */
 #screen-pause {
-  justify-content: flex-start;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  padding: var(--gap-sm) var(--gap-md) max(36px, calc(20px + var(--safe-bottom)));
+  padding: calc(var(--gap-md) + var(--safe-top)) var(--gap-md) calc(var(--safe-bottom) + 12px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: rgba(15, 23, 42, 0.96);
+  background: var(--color-bg);
 }
 
 .pause-card {
   width: 100%;
-  max-width: 320px;
+  max-width: 440px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(8px, 1.8vh, 16px);
-  padding: clamp(14px, 2.5vh, 24px);
-  margin: auto 0;
+  justify-content: space-between;
+  gap: clamp(10px, 2vh, 18px);
+  padding: clamp(16px, 2.5vh, 26px) clamp(16px, 4vw, 24px);
+  margin: 0;
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
   animation: popIn 0.3s ease forwards;
 }
 
 .pause-icon {
-  font-size: clamp(2.5rem, 6vh, 3.5rem);
+  font-size: clamp(2.8rem, 7vh, 3.8rem);
   line-height: 1;
 }
 
 .pause-title {
-  font-size: clamp(1.8rem, 4.5vh, 2.4rem);
+  font-size: clamp(2rem, 5vh, 2.6rem);
   font-weight: 900;
   color: var(--color-white);
   letter-spacing: 0.05em;
 }
 
+.pause-card .w-full {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.8vh, 16px);
+  width: 100%;
+  max-width: 340px;
+  margin: auto 0;
+}
+
 .pause-bottom-icons {
   display: flex;
   gap: var(--gap-xl);
-  margin-top: var(--gap-sm);
+  margin-top: auto;
+  padding-top: var(--gap-xs);
 }
 
 .pause-icon-btn {
