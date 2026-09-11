@@ -1199,7 +1199,7 @@ body {
   padding: var(--gap-sm) 6px max(16px, calc(8px + var(--safe-bottom)));
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
   margin-top: auto;
   flex-shrink: 0;
 }
@@ -1207,19 +1207,19 @@ body {
 .keyboard-row {
   display: flex;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .key {
   flex: 1;
-  max-width: 38px;
-  height: 48px;
+  max-width: 44px;
+  height: 56px;
   background: linear-gradient(180deg, #334155 0%, #1E293B 100%);
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: var(--r-sm);
   color: var(--color-white);
   font-family: var(--font-main);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-md);
   font-weight: 700;
   cursor: pointer;
   display: flex;
