@@ -1196,10 +1196,13 @@ body {
 /* Teclado QWERTY */
 .game-keyboard {
   width: 100%;
-  padding: var(--gap-sm) 6px max(16px, calc(8px + var(--safe-bottom)));
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 10px 8px max(20px, calc(10px + var(--safe-bottom)));
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
   margin-top: auto;
   flex-shrink: 0;
 }
@@ -1207,25 +1210,25 @@ body {
 .keyboard-row {
   display: flex;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .key {
   flex: 1;
-  max-width: 44px;
-  height: 56px;
+  max-width: 48px;
+  height: 68px;
   background: linear-gradient(180deg, #334155 0%, #1E293B 100%);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: var(--r-sm);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 10px;
   color: var(--color-white);
   font-family: var(--font-main);
-  font-size: var(--fs-md);
+  font-size: 1.25rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 0 rgba(0,0,0,0.4);
+  box-shadow: 0 4px 0 rgba(0,0,0,0.45);
   /* GPU: teclas en capa propia — respuesta visual inmediata sin repintar */
   transition: transform var(--t-fast), background var(--t-fast);
   will-change: transform;
@@ -2315,8 +2318,8 @@ body {
   .game-word-area { padding: 4px var(--gap-md); gap: 4px; }
   .game-lives-bar { padding: 4px var(--gap-md); gap: 2px; }
   .life-heart { font-size: 0.9rem; }
-  .key { height: 42px; }
-  .game-keyboard { gap: 4px; }
+  .key { height: 48px; font-size: 1rem; }
+  .game-keyboard { gap: 5px; }
   .game-over-card {
     gap: 6px;
     padding: 10px 12px;
