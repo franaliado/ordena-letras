@@ -731,8 +731,57 @@ function _onScreenShow(id) { // existing code unchanged
       }
     }
 
+    _lastGameOverState = {
+      score: state ? (state.totalScore || 0) : 0,
+      words: state ? (state.totalWords || 0) : 0,
+      level: state ? (state.level || 1) : 1
+    };
+
     showScreen('screen-game-over');
     if (isVictory || isNewRecord) _spawnParticles('toast-container');
+  }
+
+  let _lastGameOverState = { score: 0, words: 0, level: 1 };
+
+  /**
+   * Compartir récord vía Web Share API nativa o enlace de WhatsApp con fallback a portapapeles
+   */
+  async function shareScore() {
+    const score = _lastGameOverState.score;
+    const words = _lastGameOverState.words;
+    const gameUrl = (window.location.origin && window.location.origin.startsWith('http'))
+      ? window.location.origin
+      : 'https://ordena-letras.vercel.app';
+
+    const shareText = `¡Acabo de conseguir ${score} puntos con ${words} palabras en OrdenaLetras! ¿Puedes superar mi récord? ${gameUrl}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'OrdenaLetras - Juego de palabras online',
+          text: shareText
+        });
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+
+    // Si Web Share no está disponible o falla, abrir WhatsApp directamente
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+    const win = window.open(whatsappUrl, '_blank');
+    if (!win) {
+      // Fallback a copiar al portapapeles
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareText).then(() => {
+          showToast('📋 ¡Récord copiado al portapapeles!');
+        }).catch(() => {
+          showToast('⚠️ No se pudo compartir');
+        });
+      } else {
+        showToast('⚠️ No se pudo abrir la app para compartir');
+      }
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -1141,6 +1190,7 @@ function _onScreenShow(id) { // existing code unchanged
     confirmResetData,
     showHelp,
     showToast,
+    shareScore,
     updateHintButtonState,
     showHintFeedback,
     initInputHandlers,

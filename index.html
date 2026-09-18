@@ -4,11 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0F172A" />
-  <meta name="description" content="OrdenaLetras — El reto de las palabras. Juego de palabras en español." />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>OrdenaLetras — El reto de las palabras</title>
+  <title>OrdenaLetras - Juego de palabras online</title>
+  <meta name="description" content="Juega a OrdenaLetras, el divertido y adictivo juego de palabras online en español. Pon a prueba tu agilidad mental, descifra las letras desordenadas y supera tu récord." />
+  <meta name="keywords" content="OrdenaLetras, juego de palabras, ordenar letras, agilidad mental, pasatiempos online, juego de palabras en español, anagramas, juego mental" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://ordena-letras.vercel.app/" />
+
+  <!-- Open Graph / Redes Sociales y WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://ordena-letras.vercel.app/" />
+  <meta property="og:title" content="OrdenaLetras - Juego de palabras online" />
+  <meta property="og:description" content="¿Podrás ordenar las letras antes de que se acaben las vidas? Juega gratis a OrdenaLetras y desafía a tus amigos." />
+  <meta property="og:image" content="https://ordena-letras.vercel.app/OrdenaLetras_icono_oficial.png" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="OrdenaLetras - Juego de palabras online" />
+  <meta name="twitter:description" content="¿Podrás ordenar las letras antes de que se acaben las vidas? Juega gratis a OrdenaLetras y desafía a tus amigos." />
+  <meta name="twitter:image" content="https://ordena-letras.vercel.app/OrdenaLetras_icono_oficial.png" />
 
   <!-- Preconexión y carga optimizada de tipografía sin bloqueo -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -316,6 +329,7 @@
       </div>
       <div class="game-over-actions">
         <button class="btn btn-primary" id="btn-play-again" onclick="Game.playAgain()">🎮 JUGAR DE NUEVO</button>
+        <button class="btn btn-green btn-share" id="btn-share-record" onclick="UI.shareScore()">📤 COMPARTIR RÉCORD</button>
         <button class="btn btn-blue" id="btn-go-menu" onclick="Game.exitToMenu()">🏠 MENÚ PRINCIPAL</button>
       </div>
     </div>
