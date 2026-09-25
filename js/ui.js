@@ -795,18 +795,90 @@ function _onScreenShow(id) { // existing code unchanged
   // ══════════════════════════════════════════════════════════════════════
 
   /**
-   * Captura y almacena el evento beforeinstallprompt del navegador
+   * Captura y almacena el evento beforeinstallprompt del navegador de forma silenciosa
    */
   function setInstallPrompt(event) {
     _deferredInstallPrompt = event;
     showInstallOption(true);
+    checkAutoInstallBanner();
+  }
+
+  /**
+   * Comprueba si corresponde mostrar el banner de instalación automático
+   */
+  function checkAutoInstallBanner() {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.navigator.standalone === true ||
+                         localStorage.getItem('ol_pwa_installed') === 'true';
+
+    if (isStandalone) return;
+    if (sessionStorage.getItem('ol_pwa_dismissed') === 'true') return;
+
+    // Si aún está en el splash inicial, diferir la verificación
+    const currentActive = document.querySelector('.screen.active');
+    if (!currentActive || currentActive.id === 'screen-splash') {
+      setTimeout(checkAutoInstallBanner, 800);
+      return;
+    }
+
+    // Mostrar el banner elegante con retardo de cortesía no intrusivo
+    setTimeout(() => {
+      showInstallBanner();
+    }, 700);
+  }
+
+  /**
+   * Muestra el banner flotante de instalación PWA
+   */
+  function showInstallBanner() {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.navigator.standalone === true ||
+                         localStorage.getItem('ol_pwa_installed') === 'true';
+
+    if (isStandalone) return;
+    if (sessionStorage.getItem('ol_pwa_dismissed') === 'true') return;
+
+    const banner = document.getElementById('pwa-install-banner');
+    if (!banner) return;
+
+    banner.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      banner.classList.add('visible');
+    });
+  }
+
+  /**
+   * Cierra el banner de instalación ("Ahora no" o botón cerrar)
+   */
+  function dismissInstallBanner(userExplicit = true) {
+    if (userExplicit) {
+      Audio.playButton();
+      sessionStorage.setItem('ol_pwa_dismissed', 'true');
+    }
+
+    const banner = document.getElementById('pwa-install-banner');
+    if (!banner) return;
+
+    banner.classList.remove('visible');
+    setTimeout(() => {
+      banner.classList.add('hidden');
+    }, 320);
+  }
+
+  /**
+   * Acción disparada desde el botón "📲 Instalar" del banner
+   */
+  async function promptInstallFromBanner() {
+    Audio.playButton();
+    await promptInstallPWA();
   }
 
   /**
    * Muestra u oculta la opción de instalación en la interfaz principal
    */
   function showInstallOption(visible) {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.navigator.standalone === true;
     const menuBtn = document.getElementById('btn-install-app');
 
     if (menuBtn) {
@@ -821,10 +893,14 @@ function _onScreenShow(id) { // existing code unchanged
   }
 
   /**
-   * Actualiza el estado visual del botón en Ajustes
+   * Actualiza el estado visual según si la app ya está instalada
    */
   function updatePWAInstalledState(installed) {
     _isPWAInstalled = installed;
+    if (installed) {
+      dismissInstallBanner(false);
+    }
+
     const settingsBtn = document.getElementById('btn-settings-install');
     const settingsDesc = document.getElementById('settings-install-desc');
 
@@ -846,14 +922,16 @@ function _onScreenShow(id) { // existing code unchanged
   }
 
   /**
-   * Lógica interactiva al presionar "Instalar aplicación"
+   * Lógica interactiva para instalar la aplicación
    */
   async function promptInstallPWA() {
     Audio.playButton();
 
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                         window.navigator.standalone === true;
     if (isStandalone) {
       showToast('✅ ¡La aplicación ya está instalada en tu dispositivo!');
+      dismissInstallBanner(false);
       return;
     }
 
@@ -864,9 +942,12 @@ function _onScreenShow(id) { // existing code unchanged
         if (choiceResult && choiceResult.outcome === 'accepted') {
           showToast('🚀 Instalando OrdenaLetras...');
           _deferredInstallPrompt = null;
+          localStorage.setItem('ol_pwa_installed', 'true');
           showInstallOption(false);
           updatePWAInstalledState(true);
+          dismissInstallBanner(false);
         } else {
+          dismissInstallBanner(true);
           showToast('Instalación pospuesta');
         }
       } catch (err) {
@@ -878,10 +959,11 @@ function _onScreenShow(id) { // existing code unchanged
     // Guía para navegadores que no emiten beforeinstallprompt (ej. iOS Safari)
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     if (isIOS) {
-      showToast('📲 En Safari: pulsa "Compartir" y selecciona "Añadir a pantalla de inicio"');
+      showToast('📲 En Safari: pulsa "Compartir" y selecciona "Añadir a pantalla de inicio"', 4500);
     } else {
-      showToast('📲 Abre el menú de tu navegador (⋮) y selecciona "Instalar aplicación"');
+      showToast('📲 Abre el menú de tu navegador (⋮) y selecciona "Instalar aplicación"', 4000);
     }
+    dismissInstallBanner(false);
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -1297,6 +1379,10 @@ function _onScreenShow(id) { // existing code unchanged
     setInstallPrompt,
     showInstallOption,
     updatePWAInstalledState,
+    showInstallBanner,
+    dismissInstallBanner,
+    promptInstallFromBanner,
+    checkAutoInstallBanner,
     updateHintButtonState,
     showHintFeedback,
     initInputHandlers,

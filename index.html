@@ -32,7 +32,18 @@
   <link rel="apple-touch-icon" href="OrdenaLetras_icono_oficial.jpg?v=3" />
   <link rel="manifest" href="manifest.json?v=3" />
 
-  <link rel="stylesheet" href="css/style.css?v=8" />
+  <link rel="stylesheet" href="css/style.css?v=9" />
+
+  <!-- Captura silenciosa temprana de beforeinstallprompt -->
+  <script>
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      window._earlyInstallPrompt = e;
+      if (window.UI && typeof window.UI.setInstallPrompt === 'function') {
+        window.UI.setInstallPrompt(e);
+      }
+    });
+  </script>
 </head>
 <body>
 
@@ -368,13 +379,6 @@
       </div>
       <button class="btn btn-blue" id="btn-change-name" onclick="UI.showScreen('screen-player-name')">✏️ CAMBIAR NOMBRE</button>
     </div>
-    <div class="settings-section" id="settings-pwa-section">
-      <span class="settings-section-title">Aplicación</span>
-      <button class="btn btn-install" id="btn-settings-install" onclick="UI.promptInstallPWA()">📲 INSTALAR APLICACIÓN</button>
-      <p id="settings-install-desc" style="font-size:var(--fs-xs); color:var(--color-text-dim); text-align:center; line-height:1.4;">
-        Instala OrdenaLetras en tu pantalla de inicio para jugar a pantalla completa y sin conexión a internet.
-      </p>
-    </div>
     <div class="settings-section">
       <span class="settings-section-title">Datos</span>
       <button class="btn btn-red" id="btn-reset-data" onclick="UI.confirmResetData()">🗑️ RESTABLECER DATOS</button>
@@ -471,18 +475,39 @@
 
 <div class="toast-container" id="toast-container"></div>
 
+<!-- BANNER / DIÁLOGO FLOTANTE DE INSTALACIÓN PWA -->
+<div id="pwa-install-banner" class="pwa-banner-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pwa-banner-title" onclick="if(event.target === this) UI.dismissInstallBanner()">
+  <div class="pwa-banner-card" onclick="event.stopPropagation()">
+    <button class="pwa-banner-close" id="pwa-banner-close" onclick="UI.dismissInstallBanner()" aria-label="Cerrar aviso de instalación">✕</button>
+    <div class="pwa-banner-header">
+      <div class="pwa-banner-icon-wrap">
+        <img src="OrdenaLetras_icono_oficial.png" alt="Icono OrdenaLetras" class="pwa-banner-app-icon" />
+      </div>
+      <div class="pwa-banner-info">
+        <span class="pwa-banner-badge">APP OFICIAL</span>
+        <h3 id="pwa-banner-title" class="pwa-banner-title">Instalar OrdenaLetras</h3>
+        <p class="pwa-banner-desc">Instálala en tu pantalla de inicio para jugar a pantalla completa, más fluido y sin conexión.</p>
+      </div>
+    </div>
+    <div class="pwa-banner-actions">
+      <button class="btn btn-dark pwa-btn-dismiss" id="pwa-btn-dismiss" onclick="UI.dismissInstallBanner()">Ahora no</button>
+      <button class="btn btn-install pwa-btn-install" id="pwa-btn-install" onclick="UI.promptInstallFromBanner()">📲 Instalar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Supabase JS Client v2 desde CDN oficial -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- Scripts de OrdenaLetras -->
-<script src="js/utils.js?v=7"></script>
-<script src="js/storage.js?v=7"></script>
-<script src="js/supabaseClient.js?v=7"></script>
-<script src="js/audio.js?v=7"></script>
-<script src="js/words.js?v=7"></script>
-<script src="js/game.js?v=7"></script>
-<script src="js/ui.js?v=7"></script>
+<script src="js/utils.js?v=8"></script>
+<script src="js/storage.js?v=8"></script>
+<script src="js/supabaseClient.js?v=8"></script>
+<script src="js/audio.js?v=8"></script>
+<script src="js/words.js?v=8"></script>
+<script src="js/game.js?v=8"></script>
+<script src="js/ui.js?v=8"></script>
 <script src="capacitor.js"></script>
-<script src="js/main.js?v=7"></script>
+<script src="js/main.js?v=8"></script>
 </body>
 </html>

@@ -197,6 +197,7 @@
 
   window.addEventListener('appinstalled', () => {
     if (typeof UI !== 'undefined') {
+      if (UI.dismissInstallBanner) UI.dismissInstallBanner(false);
       UI.showInstallOption(false);
       UI.updatePWAInstalledState(true);
       UI.showToast('🎉 ¡OrdenaLetras instalada con éxito!');
@@ -209,6 +210,13 @@
     UI.updatePWAInstalledState(true);
   } else if (window._earlyInstallPrompt) {
     UI.setInstallPrompt(window._earlyInstallPrompt);
+  } else {
+    // Verificar activación del banner automático al entrar
+    setTimeout(() => {
+      if (typeof UI !== 'undefined' && UI.checkAutoInstallBanner) {
+        UI.checkAutoInstallBanner();
+      }
+    }, 1400);
   }
 
   console.log('[OrdenaLetras] ✅ Iniciado correctamente');
