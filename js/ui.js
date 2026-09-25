@@ -666,6 +666,10 @@ function _onScreenShow(id) { // existing code unchanged
   // PANTALLA: GAME OVER
   // ══════════════════════════════════════════════════════════════════════
 
+  let _lastGameOverState = { score: 0, words: 0, level: 1 };
+  let _deferredInstallPrompt = null;
+  let _isPWAInstalled = false;
+
   function showGameOver(state, isNewRecord, isVictory) {
     // Limpiar inmediatamente el feedback de la pantalla de juego ("❌ -1 VIDA")
     // y cualquier punto flotante visible, para evitar que se perciban como
@@ -687,11 +691,15 @@ function _onScreenShow(id) { // existing code unchanged
     const errorsEl = document.getElementById('go-errors');
     const recEl    = document.getElementById('go-new-record');
 
-    if (scoreEl)  scoreEl.textContent  = Utils.formatScore(state.totalScore);
+    const totalScore = state ? (state.totalScore ?? 0) : 0;
+    const totalWords = state ? (state.totalWords ?? 0) : 0;
+    const currentLvl = state ? (state.level ?? 1) : 1;
+
+    if (scoreEl)  scoreEl.textContent  = Utils.formatScore(totalScore);
     if (bestEl)   bestEl.textContent   = Utils.formatScore(bestScore);
-    if (levelEl)  levelEl.textContent  = state.level;
-    if (wordsEl)  wordsEl.textContent  = state.totalWords;
-    if (errorsEl) errorsEl.textContent = state.totalErrors;
+    if (levelEl)  levelEl.textContent  = currentLvl;
+    if (wordsEl)  wordsEl.textContent  = totalWords;
+    if (errorsEl) errorsEl.textContent = state ? (state.totalErrors ?? 0) : 0;
 
     if (recEl) {
       recEl.classList.toggle('hidden', !isNewRecord);
@@ -732,55 +740,147 @@ function _onScreenShow(id) { // existing code unchanged
     }
 
     _lastGameOverState = {
-      score: state ? (state.totalScore || 0) : 0,
-      words: state ? (state.totalWords || 0) : 0,
-      level: state ? (state.level || 1) : 1
+      score: totalScore,
+      words: totalWords,
+      level: currentLvl
     };
 
     showScreen('screen-game-over');
     if (isVictory || isNewRecord) _spawnParticles('toast-container');
   }
 
-  let _lastGameOverState = { score: 0, words: 0, level: 1 };
-
   /**
-   * Compartir récord vía Web Share API nativa o enlace de WhatsApp con fallback a portapapeles
+   * Compartir récord vía Web Share API nativa o enlace directo de WhatsApp con fallback a portapapeles
    */
   async function shareScore() {
-    const score = _lastGameOverState.score;
-    const words = _lastGameOverState.words;
-    const gameUrl = (window.location.origin && window.location.origin.startsWith('http'))
-      ? window.location.origin
-      : 'https://ordena-letras.vercel.app';
+    Audio.playButton();
+    const score = _lastGameOverState ? (_lastGameOverState.score || 0) : 0;
+    const words = _lastGameOverState ? (_lastGameOverState.words || 0) : 0;
+    const shareUrl = 'https://ordena-letras.vercel.app';
+    const shareText = `¡Acabo de conseguir ${score} puntos con ${words} palabras en OrdenaLetras! ¿Puedes superar mi récord? ${shareUrl}`;
 
-    const shareText = `¡Acabo de conseguir ${score} puntos con ${words} palabras en OrdenaLetras! ¿Puedes superar mi récord? ${gameUrl}`;
-
+    // 1. Web Share API nativa (dispositivos móviles Android / iOS Safari / navegadores modernos)
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'OrdenaLetras - Juego de palabras online',
+          title: 'OrdenaLetras - El reto de las palabras',
           text: shareText
         });
         return;
       } catch (err) {
+        // Si el usuario canceló deliberadamente el diálogo de compartir
         if (err.name === 'AbortError') return;
       }
     }
 
-    // Si Web Share no está disponible o falla, abrir WhatsApp directamente
+    // 2. Fallback: Enlace directo a WhatsApp
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
     const win = window.open(whatsappUrl, '_blank');
-    if (!win) {
-      // Fallback a copiar al portapapeles
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(shareText).then(() => {
-          showToast('📋 ¡Récord copiado al portapapeles!');
-        }).catch(() => {
-          showToast('⚠️ No se pudo compartir');
-        });
-      } else {
-        showToast('⚠️ No se pudo abrir la app para compartir');
+
+    // 3. Respaldo adicional: Copiar al portapapeles y notificar al usuario
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        showToast('📋 ¡Récord copiado al portapapeles!');
+      } catch (_) {
+        if (!win) showToast('⚠️ No se pudo compartir');
       }
+    } else if (!win) {
+      showToast('⚠️ No se pudo abrir la app para compartir');
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // PWA (Progressive Web App): GESTIÓN DE INSTALACIÓN
+  // ══════════════════════════════════════════════════════════════════════
+
+  /**
+   * Captura y almacena el evento beforeinstallprompt del navegador
+   */
+  function setInstallPrompt(event) {
+    _deferredInstallPrompt = event;
+    showInstallOption(true);
+  }
+
+  /**
+   * Muestra u oculta la opción de instalación en la interfaz principal
+   */
+  function showInstallOption(visible) {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const menuBtn = document.getElementById('btn-install-app');
+
+    if (menuBtn) {
+      if (visible && !isStandalone) {
+        menuBtn.classList.remove('hidden');
+      } else {
+        menuBtn.classList.add('hidden');
+      }
+    }
+
+    updatePWAInstalledState(isStandalone);
+  }
+
+  /**
+   * Actualiza el estado visual del botón en Ajustes
+   */
+  function updatePWAInstalledState(installed) {
+    _isPWAInstalled = installed;
+    const settingsBtn = document.getElementById('btn-settings-install');
+    const settingsDesc = document.getElementById('settings-install-desc');
+
+    if (settingsBtn && settingsDesc) {
+      if (installed) {
+        settingsBtn.textContent = '✅ APLICACIÓN INSTALADA';
+        settingsBtn.classList.remove('btn-install', 'btn-green');
+        settingsBtn.classList.add('btn-dark');
+        settingsBtn.disabled = true;
+        settingsDesc.textContent = 'OrdenaLetras ya está instalada y ejecutándose en tu dispositivo.';
+      } else {
+        settingsBtn.textContent = '📲 INSTALAR APLICACIÓN';
+        settingsBtn.classList.add('btn-install');
+        settingsBtn.classList.remove('btn-dark');
+        settingsBtn.disabled = false;
+        settingsDesc.textContent = 'Instala OrdenaLetras en tu pantalla de inicio para jugar a pantalla completa y sin conexión a internet.';
+      }
+    }
+  }
+
+  /**
+   * Lógica interactiva al presionar "Instalar aplicación"
+   */
+  async function promptInstallPWA() {
+    Audio.playButton();
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (isStandalone) {
+      showToast('✅ ¡La aplicación ya está instalada en tu dispositivo!');
+      return;
+    }
+
+    if (_deferredInstallPrompt) {
+      try {
+        _deferredInstallPrompt.prompt();
+        const choiceResult = await _deferredInstallPrompt.userChoice;
+        if (choiceResult && choiceResult.outcome === 'accepted') {
+          showToast('🚀 Instalando OrdenaLetras...');
+          _deferredInstallPrompt = null;
+          showInstallOption(false);
+          updatePWAInstalledState(true);
+        } else {
+          showToast('Instalación pospuesta');
+        }
+      } catch (err) {
+        console.warn('[PWA] Error durante instalación:', err);
+      }
+      return;
+    }
+
+    // Guía para navegadores que no emiten beforeinstallprompt (ej. iOS Safari)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+      showToast('📲 En Safari: pulsa "Compartir" y selecciona "Añadir a pantalla de inicio"');
+    } else {
+      showToast('📲 Abre el menú de tu navegador (⋮) y selecciona "Instalar aplicación"');
     }
   }
 
@@ -1028,6 +1128,8 @@ function _onScreenShow(id) { // existing code unchanged
         btnName.textContent = '➕ AGREGAR NOMBRE';
       }
     }
+
+    updatePWAInstalledState(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -1191,6 +1293,10 @@ function _onScreenShow(id) { // existing code unchanged
     showHelp,
     showToast,
     shareScore,
+    promptInstallPWA,
+    setInstallPrompt,
+    showInstallOption,
+    updatePWAInstalledState,
     updateHintButtonState,
     showHintFeedback,
     initInputHandlers,

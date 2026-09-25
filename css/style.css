@@ -267,6 +267,44 @@ body {
   box-shadow: 0 1px 0 #059669, 0 3px 8px rgba(0,0,0,0.3);
 }
 
+/* Botón COMPARTIR RÉCORD (Verde brillante arcade 3D) */
+.btn-share {
+  background: linear-gradient(180deg, #34D399 0%, #10B981 50%, #059669 100%) !important;
+  color: var(--color-white) !important;
+  box-shadow: 0 5px 0 #047857, 0 8px 18px rgba(16, 185, 129, 0.35) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+.btn-share:hover {
+  filter: brightness(1.08);
+}
+.btn-share:active {
+  box-shadow: 0 1px 0 #047857, 0 3px 8px rgba(0,0,0,0.3) !important;
+}
+
+/* Botón INSTALAR APLICACIÓN PWA */
+.btn-install {
+  background: linear-gradient(180deg, #10B981 0%, #059669 50%, #047857 100%) !important;
+  color: var(--color-white) !important;
+  box-shadow: 0 5px 0 #064E3B, 0 8px 18px rgba(16, 185, 129, 0.35) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  animation: pulseInstall 3s ease-in-out infinite;
+}
+.btn-install:hover {
+  filter: brightness(1.08);
+}
+.btn-install:active {
+  box-shadow: 0 1px 0 #064E3B, 0 3px 8px rgba(0,0,0,0.3) !important;
+}
+
+@keyframes pulseInstall {
+  0%, 100% {
+    box-shadow: 0 5px 0 #064E3B, 0 8px 18px rgba(16, 185, 129, 0.35);
+  }
+  50% {
+    box-shadow: 0 5px 0 #064E3B, 0 8px 24px rgba(16, 185, 129, 0.65);
+  }
+}
+
 /* Botón SALIR / RESET (Rojo 3D) */
 .btn-red {
   background: linear-gradient(180deg, #F87171 0%, var(--color-red) 50%, #B91C1C 100%);

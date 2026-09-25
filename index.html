@@ -102,6 +102,7 @@
       <button class="btn btn-blue" id="btn-records" onclick="UI.showScreen('screen-records')">RÉCORDS</button>
       <button class="btn btn-blue" id="btn-settings" onclick="UI.showScreen('screen-settings')">AJUSTES</button>
       <button class="btn btn-blue" id="btn-help" onclick="UI.showHelp()">AYUDA</button>
+      <button class="btn btn-install hidden" id="btn-install-app" onclick="UI.promptInstallPWA()">📲 INSTALAR APLICACIÓN</button>
     </div>
     <div class="menu-bottom-icons">
       <button class="menu-icon-circle" id="icon-records" onclick="UI.showScreen('screen-records')" aria-label="Récords">🏆</button>
@@ -366,6 +367,13 @@
         <span class="settings-name-value" id="settings-name-display">Jugador</span>
       </div>
       <button class="btn btn-blue" id="btn-change-name" onclick="UI.showScreen('screen-player-name')">✏️ CAMBIAR NOMBRE</button>
+    </div>
+    <div class="settings-section" id="settings-pwa-section">
+      <span class="settings-section-title">Aplicación</span>
+      <button class="btn btn-install" id="btn-settings-install" onclick="UI.promptInstallPWA()">📲 INSTALAR APLICACIÓN</button>
+      <p id="settings-install-desc" style="font-size:var(--fs-xs); color:var(--color-text-dim); text-align:center; line-height:1.4;">
+        Instala OrdenaLetras en tu pantalla de inicio para jugar a pantalla completa y sin conexión a internet.
+      </p>
     </div>
     <div class="settings-section">
       <span class="settings-section-title">Datos</span>

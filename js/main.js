@@ -185,6 +185,32 @@
     }
   }
 
+  // ── 13. PWA: Capturar beforeinstallprompt y appinstalled ──────────────────
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    if (typeof UI !== 'undefined' && UI.setInstallPrompt) {
+      UI.setInstallPrompt(e);
+    } else {
+      window._earlyInstallPrompt = e;
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    if (typeof UI !== 'undefined') {
+      UI.showInstallOption(false);
+      UI.updatePWAInstalledState(true);
+      UI.showToast('🎉 ¡OrdenaLetras instalada con éxito!');
+    }
+  });
+
+  // Verificar estado standalone o si ya hubo prompt anticipado
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (isStandalone) {
+    UI.updatePWAInstalledState(true);
+  } else if (window._earlyInstallPrompt) {
+    UI.setInstallPrompt(window._earlyInstallPrompt);
+  }
+
   console.log('[OrdenaLetras] ✅ Iniciado correctamente');
 
 })();
