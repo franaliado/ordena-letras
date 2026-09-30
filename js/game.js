@@ -540,6 +540,9 @@ const Game = (() => {
       Storage.clearGameState();
     }
 
+    const prevBest = Storage.getBestScore();
+    const isNewRecord = _state.totalScore > 0 && (_state.totalScore > prevBest || (prevBest === 0 && _state.totalScore > 0));
+
     // Guardar resultado (incluyendo el nivel alcanzado)
     const result = {
       score:          _state.totalScore,
@@ -549,9 +552,6 @@ const Game = (() => {
       streak:         _state.maxStreak,
     };
     Storage.recordGameResult(result);
-
-    const prevBest = Storage.getBestScore();
-    const isNewRecord = _state.totalScore > 0 && _state.totalScore >= prevBest;
 
     UI.showGameOver(_state, isNewRecord, isVictory);
   }

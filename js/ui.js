@@ -745,8 +745,73 @@ function _onScreenShow(id) { // existing code unchanged
       level: currentLvl
     };
 
-    showScreen('screen-game-over');
-    if (isVictory || isNewRecord) _spawnParticles('toast-container');
+    if (isNewRecord) {
+      // Cuando el usuario rompe un récord, no debe ir directo a la pantalla de estadísticas genérica.
+      // Se prepara la pantalla de estadísticas en segundo plano y se muestra inmediatamente
+      // el modal centrado anunciando ¡NUEVO RÉCORD! con la puntuación y las opciones prioritarias de compartir.
+      showScreen('screen-game-over');
+      openRecordModal(_lastGameOverState);
+    } else {
+      showScreen('screen-game-over');
+      if (isVictory) _spawnParticles('toast-container');
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // MODAL DE NUEVO RÉCORD Y COMPARTIR
+  // ══════════════════════════════════════════════════════════════════════
+
+  function _getShareText() {
+    const score = _lastGameOverState ? (_lastGameOverState.score || 0) : 0;
+    const words = _lastGameOverState ? (_lastGameOverState.words || 0) : 0;
+    const shareUrl = 'https://ordena-letras.vercel.app';
+    return `¡Acabo de conseguir un NUEVO RÉCORD de ${score} puntos (${words} palabras) en OrdenaLetras! 🏆 ¿Puedes superarme? Juega gratis aquí: ${shareUrl}`;
+  }
+
+  function openRecordModal(state) {
+    const modal = document.getElementById('modal-new-record');
+    if (!modal) return;
+
+    const scoreEl = document.getElementById('modal-record-score');
+    const wordsEl = document.getElementById('modal-record-words');
+    const levelEl = document.getElementById('modal-record-level');
+
+    const score = state ? (state.score ?? 0) : 0;
+    const words = state ? (state.words ?? 0) : 0;
+    const level = state ? (state.level ?? 1) : 1;
+
+    if (scoreEl) scoreEl.textContent = Utils.formatScore(score);
+    if (wordsEl) wordsEl.textContent = `${words} ${words === 1 ? 'palabra' : 'palabras'}`;
+    if (levelEl) levelEl.textContent = `Nivel ${level}`;
+
+    modal.classList.remove('hidden');
+    void modal.offsetWidth; // Forzar reflujo para activar transición CSS
+    modal.classList.add('visible');
+
+    try {
+      Audio.playLevelUp();
+    } catch (_) {}
+    _spawnParticles('toast-container');
+    setTimeout(() => {
+      _spawnParticles('toast-container');
+    }, 550);
+  }
+
+  function closeRecordModal() {
+    Audio.playButton();
+    const modal = document.getElementById('modal-new-record');
+    if (!modal) return;
+    modal.classList.remove('visible');
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 280);
+  }
+
+  function recordPlayAgain() {
+    closeRecordModal();
+    if (typeof Game !== 'undefined' && Game.playAgain) {
+      Game.playAgain();
+    }
   }
 
   /**
@@ -754,40 +819,52 @@ function _onScreenShow(id) { // existing code unchanged
    */
   async function shareScore() {
     Audio.playButton();
-    const score = _lastGameOverState ? (_lastGameOverState.score || 0) : 0;
-    const words = _lastGameOverState ? (_lastGameOverState.words || 0) : 0;
+    const shareText = _getShareText();
     const shareUrl = 'https://ordena-letras.vercel.app';
-    const shareText = `¡Acabo de conseguir ${score} puntos con ${words} palabras en OrdenaLetras! ¿Puedes superar mi récord? ${shareUrl}`;
 
     // 1. Web Share API nativa (dispositivos móviles Android / iOS Safari / navegadores modernos)
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'OrdenaLetras - El reto de las palabras',
-          text: shareText
+          title: '🏆 ¡Nuevo Récord en OrdenaLetras!',
+          text: shareText,
+          url: shareUrl
         });
         return;
       } catch (err) {
-        // Si el usuario canceló deliberadamente el diálogo de compartir
         if (err.name === 'AbortError') return;
       }
     }
 
-    // 2. Fallback: Enlace directo a WhatsApp
-    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
-    const win = window.open(whatsappUrl, '_blank');
+    // 2. Fallback: WhatsApp directo
+    shareViaWhatsApp();
+  }
 
-    // 3. Respaldo adicional: Copiar al portapapeles y notificar al usuario
+  function shareViaWhatsApp() {
+    Audio.playButton();
+    const shareText = _getShareText();
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+    window.open(whatsappUrl, '_blank');
+  }
+
+  function shareViaTwitter() {
+    Audio.playButton();
+    const shareText = _getShareText();
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    window.open(twitterUrl, '_blank');
+  }
+
+  async function copyShareLink() {
+    Audio.playButton();
+    const shareText = _getShareText();
     if (navigator.clipboard && navigator.clipboard.writeText) {
       try {
         await navigator.clipboard.writeText(shareText);
         showToast('📋 ¡Récord copiado al portapapeles!');
-      } catch (_) {
-        if (!win) showToast('⚠️ No se pudo compartir');
-      }
-    } else if (!win) {
-      showToast('⚠️ No se pudo abrir la app para compartir');
+        return;
+      } catch (_) {}
     }
+    showToast('📋 ¡Texto listo para compartir!');
   }
 
   // ══════════════════════════════════════════════════════════════════════
@@ -1375,6 +1452,12 @@ function _onScreenShow(id) { // existing code unchanged
     showHelp,
     showToast,
     shareScore,
+    shareViaWhatsApp,
+    shareViaTwitter,
+    copyShareLink,
+    openRecordModal,
+    closeRecordModal,
+    recordPlayAgain,
     promptInstallPWA,
     setInstallPrompt,
     showInstallOption,

@@ -32,7 +32,7 @@
   <link rel="apple-touch-icon" href="OrdenaLetras_icono_oficial.jpg?v=3" />
   <link rel="manifest" href="manifest.json?v=3" />
 
-  <link rel="stylesheet" href="css/style.css?v=9" />
+  <link rel="stylesheet" href="css/style.css?v=10" />
 
   <!-- Captura silenciosa temprana de beforeinstallprompt -->
   <script>
@@ -475,6 +475,62 @@
 
 <div class="toast-container" id="toast-container"></div>
 
+<!-- MODAL EMERGENTE CENTRADO — ¡NUEVO RÉCORD! -->
+<div id="modal-new-record" class="record-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-record-title">
+  <div class="record-modal-card" onclick="event.stopPropagation()">
+    <button class="record-modal-close" onclick="UI.closeRecordModal()" aria-label="Cerrar ventana">✕</button>
+    
+    <div class="record-modal-badge-wrapper">
+      <div class="record-modal-glow"></div>
+      <div class="record-modal-trophy">🏆</div>
+    </div>
+
+    <h2 class="record-modal-title" id="modal-record-title">¡NUEVO RÉCORD!</h2>
+    <p class="record-modal-subtitle">¡Increíble! Has superado tu mejor marca personal</p>
+
+    <div class="record-modal-score-box">
+      <span class="record-modal-score-label">PUNTUACIÓN ALCANZADA</span>
+      <span class="record-modal-score-val" id="modal-record-score">0</span>
+      <div class="record-modal-score-details">
+        <span id="modal-record-words">0 palabras</span> • <span id="modal-record-level">Nivel 1</span>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DESTACADA: COMPARTIR RÉCORD -->
+    <div class="record-modal-share-section">
+      <div class="record-share-banner-title">🎉 ¡Presume tu récord con amigos!</div>
+      
+      <button class="btn btn-green btn-record-share-main" id="btn-modal-share-main" onclick="UI.shareScore()">
+        <span>📤</span> COMPARTIR RÉCORD
+      </button>
+
+      <div class="record-social-buttons">
+        <button class="record-social-btn btn-whatsapp" onclick="UI.shareViaWhatsApp()" aria-label="Compartir en WhatsApp">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.41a8.17 8.17 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.44 0-2.85-.38-4.09-1.11l-.29-.17-3.05.8 1.05-3.02-.19-.3a8.19 8.19 0 0 1-1.26-4.44c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.5c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.25-1.49-1.4-1.74-.14-.25-.02-.39.11-.51.11-.11.25-.29.38-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.34-.76-1.84-.2-.49-.4-.42-.56-.43h-.47c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.23.9 2.43 1.03 2.6.13.17 1.77 2.7 4.28 3.78.6.26 1.06.41 1.43.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.23-.17-.48-.29z"/></svg>
+          <span>WhatsApp</span>
+        </button>
+        <button class="record-social-btn btn-twitter" onclick="UI.shareViaTwitter()" aria-label="Compartir en X">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <span>X / Redes</span>
+        </button>
+        <button class="record-social-btn btn-copy" onclick="UI.copyShareLink()" aria-label="Copiar al portapapeles">
+          <span>📋 Copiar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ACCIONES DE CONTINUACIÓN -->
+    <div class="record-modal-actions">
+      <button class="btn btn-primary btn-record-play-again" onclick="UI.recordPlayAgain()">
+        🎮 JUGAR DE NUEVO
+      </button>
+      <button class="btn btn-record-close" onclick="UI.closeRecordModal()">
+        📊 Ver Estadísticas / Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- BANNER / DIÁLOGO FLOTANTE DE INSTALACIÓN PWA -->
 <div id="pwa-install-banner" class="pwa-banner-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pwa-banner-title" onclick="if(event.target === this) UI.dismissInstallBanner()">
   <div class="pwa-banner-card" onclick="event.stopPropagation()">
@@ -500,14 +556,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <!-- Scripts de OrdenaLetras -->
-<script src="js/utils.js?v=8"></script>
-<script src="js/storage.js?v=8"></script>
-<script src="js/supabaseClient.js?v=8"></script>
-<script src="js/audio.js?v=8"></script>
-<script src="js/words.js?v=8"></script>
-<script src="js/game.js?v=8"></script>
-<script src="js/ui.js?v=8"></script>
+<script src="js/utils.js?v=10"></script>
+<script src="js/storage.js?v=10"></script>
+<script src="js/supabaseClient.js?v=10"></script>
+<script src="js/audio.js?v=10"></script>
+<script src="js/words.js?v=10"></script>
+<script src="js/game.js?v=10"></script>
+<script src="js/ui.js?v=10"></script>
 <script src="capacitor.js"></script>
-<script src="js/main.js?v=8"></script>
+<script src="js/main.js?v=10"></script>
 </body>
 </html>
