@@ -1796,40 +1796,119 @@ body {
    PANTALLA 9 — GAME OVER
    ══════════════════════════════════════════════════════════════ */
 #screen-game-over {
-  /* La pantalla NO hace scroll: la tarjeta debe expandirse para llenar
-     exactamente el espacio disponible hasta la barra de navegación Android */
   justify-content: stretch;
   align-items: center;
-  /* padding-bottom respeta safe-area-inset-bottom para que el botón MENÚ
-     quede justo encima de la barra del sistema sin solapamiento ni hueco */
-  padding: clamp(8px, 1.5vh, 14px) var(--gap-md)
-           max(20px, calc(14px + var(--safe-bottom)));
+  padding: clamp(6px, 1.2vh, 12px) var(--gap-md)
+           max(20px, calc(12px + var(--safe-bottom)));
   overflow: hidden;
 }
 
 .game-over-card {
   width: 100%;
   max-width: 420px;
-  /* flex: 1 + align-self: stretch garantiza que la tarjeta llene
-     toda la altura disponible sin dejar espacio negro debajo */
   flex: 1;
   align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(6px, 1.4vh, 12px);
-  padding: clamp(12px, 2vh, 20px) clamp(14px, 3.5vw, 22px)
-           clamp(12px, 2vh, 20px);
+  gap: clamp(5px, 1.1vh, 10px);
+  padding: clamp(10px, 1.8vh, 16px) clamp(14px, 3.5vw, 20px)
+           clamp(10px, 1.8vh, 16px);
   margin: 0;
   box-sizing: border-box;
+  background: linear-gradient(160deg, rgba(22, 38, 76, 0.95) 0%, rgba(15, 23, 42, 0.97) 60%, rgba(30, 42, 90, 0.95) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
   animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-.game-over-icon {
-  font-size: clamp(2.2rem, 5vh, 3.2rem);
-  line-height: 1;
+/* —— Banner NUEVO RÉCORD —— */
+.game-over-record-banner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(255, 183, 3, 0.2) 0%, rgba(255, 100, 0, 0.15) 100%);
+  border: 1.5px solid rgba(255, 183, 3, 0.7);
+  border-radius: var(--r-md);
+  padding: 9px 14px;
+  box-shadow: 0 0 20px rgba(255, 183, 3, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  animation: bannerSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   flex-shrink: 0;
+}
+
+.game-over-record-banner.hidden {
+  display: none;
+}
+
+@keyframes bannerSlideIn {
+  0%   { transform: translateY(-20px) scale(0.9); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.go-record-trophy-wrap {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.go-record-glow {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 183, 3, 0.6) 0%, rgba(255, 183, 3, 0) 70%);
+  animation: pulseRecordGlow 1.8s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.go-record-trophy-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+  filter: drop-shadow(0 3px 8px rgba(255, 183, 3, 0.7));
+  animation: bounceTrophy 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+}
+
+.go-record-text-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.go-record-label {
+  font-size: clamp(0.95rem, 2.2vh, 1.15rem);
+  font-weight: 900;
+  color: #FFE259;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 12px rgba(255, 183, 3, 0.6);
+  white-space: nowrap;
+}
+
+.go-record-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #FCD34D;
+  opacity: 0.85;
+}
+
+/* —— Cabecera (icono + título) —— */
+.game-over-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.game-over-icon {
+  font-size: clamp(2rem, 4.5vh, 3rem);
+  line-height: 1;
   animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
@@ -1840,26 +1919,24 @@ body {
 }
 
 .game-over-title {
-  font-size: clamp(1.4rem, 3.2vh, 1.9rem);
+  font-size: clamp(1.25rem, 2.8vh, 1.75rem);
   font-weight: 900;
   color: var(--color-white);
   text-shadow: 0 0 24px rgba(67, 97, 238, 0.5);
   letter-spacing: 0.04em;
   text-align: center;
   line-height: 1.15;
-  flex-shrink: 0;
 }
 
+/* —— Estadísticas —— */
 .game-over-stats {
   width: 100%;
-  /* flex: 1 hace que la sección de estadísticas ocupe todo el espacio
-     vertical disponible entre el título y los botones */
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-  gap: clamp(3px, 0.8vh, 7px);
-  margin: clamp(2px, 0.6vh, 8px) 0;
+  gap: clamp(3px, 0.65vh, 6px);
+  margin: clamp(2px, 0.5vh, 6px) 0;
   min-height: 0;
 }
 
@@ -1867,31 +1944,44 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: clamp(7px, 1.4vh, 11px) var(--gap-md);
+  padding: clamp(6px, 1.2vh, 10px) var(--gap-md);
   background: rgba(255,255,255,0.04);
   border-radius: var(--r-sm);
+  border-left: 3px solid transparent;
   font-size: var(--fs-sm);
   flex-shrink: 0;
+  transition: background var(--t-fast);
 }
+
+/* Color de borde izquierdo según posición */
+.game-over-stat-row:nth-child(1) { border-left-color: var(--color-gold); }
+.game-over-stat-row:nth-child(2) { border-left-color: #FFD700; }
+.game-over-stat-row:nth-child(3) { border-left-color: #60A5FA; }
+.game-over-stat-row:nth-child(4) { border-left-color: var(--color-green); }
+.game-over-stat-row:nth-child(5) { border-left-color: var(--color-red); }
 
 .game-over-stat-label {
   color: var(--color-text-dim);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  font-size: clamp(0.65rem, 1.3vh, 0.78rem);
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .game-over-stat-value {
   font-weight: 900;
-  font-size: var(--fs-md);
+  font-size: clamp(0.9rem, 1.9vh, 1.1rem);
   color: var(--color-white);
 }
-.game-over-stat-value.gold { color: var(--color-gold); }
-.game-over-stat-value.green { color: var(--color-green); }
+.game-over-stat-value.gold  { color: var(--color-gold); text-shadow: 0 0 10px rgba(255, 183, 3, 0.4); }
+.game-over-stat-value.green { color: var(--color-green); text-shadow: 0 0 10px rgba(34, 197, 94, 0.35); }
+.game-over-stat-value.level-val  { color: #60A5FA; }
+.game-over-stat-value.errors-val { color: #F87171; }
 
-/* Fila de "Palabra no adivinada": columna para acomodar la palabra
-   en 2 líneas si es larga, evitando desbordamientos laterales */
+/* Fila de "Palabra no adivinada" */
 .game-over-stat-row-col {
   flex-direction: column;
   align-items: center;
@@ -1900,6 +1990,7 @@ body {
   padding: clamp(7px, 1.3vh, 11px) var(--gap-sm);
   background: rgba(239, 68, 68, 0.08);
   border: 1px solid rgba(239, 68, 68, 0.25);
+  border-left: 3px solid var(--color-red);
   text-align: center;
 }
 
@@ -1909,15 +2000,12 @@ body {
   opacity: 0.9;
 }
 
-/* La palabra no adivinada permite salto de línea natural para palabras largas */
 .game-over-stat-value.word-highlight {
   color: var(--color-red);
   font-size: clamp(1rem, 2.3vh, 1.3rem);
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  /* Salto automático en palabras largas: primero por espacios/guiones,
-     luego fuerza el corte carácter a carácter si sigue sin caber */
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: normal;
@@ -1926,31 +2014,92 @@ body {
   text-align: center;
 }
 
-.game-over-new-record {
-  font-size: var(--fs-sm);
+/* —— Sección compartir en game-over —— */
+.go-share-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.go-share-label {
+  font-size: 0.74rem;
   font-weight: 800;
-  color: var(--color-gold);
+  color: #6EE7B7;
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.go-share-buttons {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.go-social-btn {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--gap-sm);
-  flex-shrink: 0;
-  animation: pulse 1s ease-in-out infinite;
+  justify-content: center;
+  gap: 5px;
+  padding: clamp(8px, 1.3vh, 11px) 4px;
+  font-size: clamp(0.64rem, 1.3vh, 0.76rem);
+  font-weight: 800;
+  font-family: inherit;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+  touch-action: manipulation;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.go-social-btn:active {
+  transform: translateY(2px);
+  filter: brightness(0.9);
+}
+
+.go-btn-whatsapp {
+  background: linear-gradient(180deg, #2EE87A 0%, #25D366 50%, #1da851 100%);
+  color: #FFFFFF;
+  box-shadow: 0 3px 0 #158a3e, 0 5px 12px rgba(37, 211, 102, 0.35);
+}
+
+.go-btn-facebook {
+  background: linear-gradient(180deg, #5B9BF8 0%, #1877F2 50%, #1258BD 100%);
+  color: #FFFFFF;
+  box-shadow: 0 3px 0 #0d4a9e, 0 5px 12px rgba(24, 119, 242, 0.35);
+}
+
+.go-btn-twitter {
+  background: linear-gradient(180deg, #2D3748 0%, #111827 50%, #030712 100%);
+  color: #F9FAFB;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 3px 0 #030712, 0 5px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* —— Acciones —— */
+.game-over-new-record {
+  display: none; /* reemplazado por game-over-record-banner */
 }
 
 .game-over-actions {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: clamp(8px, 1.2vh, 10px);
-  /* margin-top: auto empuja los botones al fondo de la tarjeta */
+  gap: clamp(7px, 1vh, 10px);
   margin-top: auto;
   flex-shrink: 0;
 }
 
 .game-over-actions .btn {
-  padding: clamp(12px, 1.8vh, 15px) 20px;
-  font-size: clamp(0.95rem, 2vh, 1.05rem);
+  padding: clamp(11px, 1.6vh, 14px) 20px;
+  font-size: clamp(0.92rem, 1.9vh, 1.02rem);
 }
+
 
 /* ══════════════════════════════════════════════════════════════
    PANTALLA 10 — AJUSTES
@@ -2813,6 +2962,16 @@ body {
   fill: #FFFFFF;
 }
 
+.record-social-btn.btn-facebook {
+  background: linear-gradient(180deg, #5B9BF8 0%, #1877F2 50%, #1258BD 100%);
+  color: #FFFFFF;
+  box-shadow: 0 3px 0 #0d4a9e;
+}
+
+.record-social-btn.btn-facebook svg {
+  fill: #FFFFFF;
+}
+
 .record-social-btn.btn-twitter {
   background: #111827;
   color: #F9FAFB;
@@ -2822,13 +2981,6 @@ body {
 
 .record-social-btn.btn-twitter svg {
   fill: #F9FAFB;
-}
-
-.record-social-btn.btn-copy {
-  background: rgba(255, 255, 255, 0.12);
-  color: #F1F5F9;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
 }
 
 .record-modal-actions {

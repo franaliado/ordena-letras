@@ -717,8 +717,8 @@ function _onScreenShow(id) { // existing code unchanged
     } else if (isNewRecord) {
       if (iconEl)  iconEl.textContent  = '🏆';
       if (goTitle) {
-        goTitle.textContent = '¡NUEVO RÉCORD!';
-        goTitle.style.color = 'var(--color-gold)';
+        goTitle.textContent = 'PARTIDA FINALIZADA';
+        goTitle.style.color = '';
       }
     } else {
       if (iconEl)  iconEl.textContent  = '🎉';
@@ -852,6 +852,13 @@ function _onScreenShow(id) { // existing code unchanged
     const shareText = _getShareText();
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
     window.open(twitterUrl, '_blank');
+  }
+
+  function shareViaFacebook() {
+    Audio.playButton();
+    const shareUrl = 'https://ordena-letras.vercel.app';
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(_getShareText())}`;
+    window.open(facebookUrl, '_blank');
   }
 
   async function copyShareLink() {
@@ -1453,6 +1460,7 @@ function _onScreenShow(id) { // existing code unchanged
     showToast,
     shareScore,
     shareViaWhatsApp,
+    shareViaFacebook,
     shareViaTwitter,
     copyShareLink,
     openRecordModal,

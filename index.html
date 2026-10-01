@@ -310,38 +310,71 @@
   <!-- PANTALLA 9 — FIN DE PARTIDA -->
   <section id="screen-game-over" class="screen">
     <div class="card game-over-card">
-      <div class="game-over-icon" id="go-icon">🎉</div>
-      <div class="game-over-title" id="go-title">PARTIDA FINALIZADA</div>
-      <div class="game-over-new-record hidden" id="go-new-record">🌟 ¡NUEVO RÉCORD!</div>
+      <!-- Banner NUEVO RÉCORD con trofeo -->
+      <div class="game-over-record-banner hidden" id="go-new-record">
+        <div class="go-record-trophy-wrap">
+          <div class="go-record-glow"></div>
+          <span class="go-record-trophy-icon">🏆</span>
+        </div>
+        <div class="go-record-text-block">
+          <span class="go-record-label">¡NUEVO RÉCORD!</span>
+          <span class="go-record-sub">¡Has superado tu mejor marca!</span>
+        </div>
+      </div>
+
+      <div class="game-over-header">
+        <div class="game-over-icon" id="go-icon">🎉</div>
+        <div class="game-over-title" id="go-title">PARTIDA FINALIZADA</div>
+      </div>
+
       <div class="game-over-stats">
         <div class="game-over-stat-row">
-          <span class="game-over-stat-label">Puntuación</span>
+          <span class="game-over-stat-label">🏅 Puntuación</span>
           <span class="game-over-stat-value gold" id="go-score">0</span>
         </div>
         <div class="game-over-stat-row">
-          <span class="game-over-stat-label">Mejor Puntuación</span>
+          <span class="game-over-stat-label">🥇 Mejor Puntuación</span>
           <span class="game-over-stat-value gold" id="go-best">0</span>
         </div>
         <div class="game-over-stat-row">
-          <span class="game-over-stat-label">Nivel Alcanzado</span>
-          <span class="game-over-stat-value" id="go-level">1</span>
+          <span class="game-over-stat-label">📈 Nivel Alcanzado</span>
+          <span class="game-over-stat-value level-val" id="go-level">1</span>
         </div>
         <div class="game-over-stat-row">
-          <span class="game-over-stat-label">Palabras Completadas</span>
+          <span class="game-over-stat-label">✅ Palabras Completadas</span>
           <span class="game-over-stat-value green" id="go-words">0</span>
         </div>
         <div class="game-over-stat-row">
-          <span class="game-over-stat-label">Errores</span>
-          <span class="game-over-stat-value" id="go-errors">0</span>
+          <span class="game-over-stat-label">❌ Errores</span>
+          <span class="game-over-stat-value errors-val" id="go-errors">0</span>
         </div>
         <div class="game-over-stat-row game-over-stat-row-col hidden" id="go-last-word-row">
           <span class="game-over-stat-label">Palabra no adivinada</span>
           <span class="game-over-stat-value word-highlight" id="go-last-word">---</span>
         </div>
       </div>
+
+      <!-- Sección Compartir: 3 botones directos -->
+      <div class="go-share-section">
+        <span class="go-share-label">🎉 ¡Presume tu puntuación!</span>
+        <div class="go-share-buttons">
+          <button class="go-social-btn go-btn-whatsapp" id="btn-go-whatsapp" onclick="UI.shareViaWhatsApp()" aria-label="Compartir en WhatsApp">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.41a8.17 8.17 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.44 0-2.85-.38-4.09-1.11l-.29-.17-3.05.8 1.05-3.02-.19-.3a8.19 8.19 0 0 1-1.26-4.44c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.5c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.25-1.49-1.4-1.74-.14-.25-.02-.39.11-.51.11-.11.25-.29.38-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.34-.76-1.84-.2-.49-.4-.42-.56-.43h-.47c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.23.9 2.43 1.03 2.6.13.17 1.77 2.7 4.28 3.78.6.26 1.06.41 1.43.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.23-.17-.48-.29z"/></svg>
+            <span>WhatsApp</span>
+          </button>
+          <button class="go-social-btn go-btn-facebook" id="btn-go-facebook" onclick="UI.shareViaFacebook()" aria-label="Compartir en Facebook">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            <span>Facebook</span>
+          </button>
+          <button class="go-social-btn go-btn-twitter" id="btn-go-twitter" onclick="UI.shareViaTwitter()" aria-label="Compartir en X">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            <span>X / Twitter</span>
+          </button>
+        </div>
+      </div>
+
       <div class="game-over-actions">
         <button class="btn btn-primary" id="btn-play-again" onclick="Game.playAgain()">🎮 JUGAR DE NUEVO</button>
-        <button class="btn btn-green btn-share" id="btn-share-record" onclick="UI.shareScore()">📤 COMPARTIR RÉCORD</button>
         <button class="btn btn-blue" id="btn-go-menu" onclick="Game.exitToMenu()">🏠 MENÚ PRINCIPAL</button>
       </div>
     </div>
@@ -499,22 +532,18 @@
     <!-- SECCIÓN DESTACADA: COMPARTIR RÉCORD -->
     <div class="record-modal-share-section">
       <div class="record-share-banner-title">🎉 ¡Presume tu récord con amigos!</div>
-      
-      <button class="btn btn-green btn-record-share-main" id="btn-modal-share-main" onclick="UI.shareScore()">
-        <span>📤</span> COMPARTIR RÉCORD
-      </button>
-
       <div class="record-social-buttons">
         <button class="record-social-btn btn-whatsapp" onclick="UI.shareViaWhatsApp()" aria-label="Compartir en WhatsApp">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2zm.01 1.67c2.2 0 4.26.86 5.82 2.41a8.17 8.17 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.44 0-2.85-.38-4.09-1.11l-.29-.17-3.05.8 1.05-3.02-.19-.3a8.19 8.19 0 0 1-1.26-4.44c0-4.54 3.7-8.24 8.24-8.24zm4.52 11.5c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.25-1.49-1.4-1.74-.14-.25-.02-.39.11-.51.11-.11.25-.29.38-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.34-.76-1.84-.2-.49-.4-.42-.56-.43h-.47c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.23.9 2.43 1.03 2.6.13.17 1.77 2.7 4.28 3.78.6.26 1.06.41 1.43.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.11-.23-.17-.48-.29z"/></svg>
           <span>WhatsApp</span>
         </button>
+        <button class="record-social-btn btn-facebook" onclick="UI.shareViaFacebook()" aria-label="Compartir en Facebook">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          <span>Facebook</span>
+        </button>
         <button class="record-social-btn btn-twitter" onclick="UI.shareViaTwitter()" aria-label="Compartir en X">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          <span>X / Redes</span>
-        </button>
-        <button class="record-social-btn btn-copy" onclick="UI.copyShareLink()" aria-label="Copiar al portapapeles">
-          <span>📋 Copiar</span>
+          <span>X / Twitter</span>
         </button>
       </div>
     </div>
